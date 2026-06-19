@@ -8,10 +8,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Premium Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <!-- Chart.js for Advanced Analytics -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   
-  <!-- -->
   <script>
     tailwind.config = {
       theme: {
@@ -81,7 +78,6 @@
   </style>
 
   <!-- Firebase JavaScript SDK (v11.6.1) -->
-  <!-- -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
     import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
@@ -106,7 +102,7 @@
   <!-- CUSTOM INTERACTIVE MODALS -->
   <div id="custom-modal-root" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100] flex items-center justify-center p-4 hidden">
     <div class="max-w-md w-full bg-white border border-zone-border rounded-2xl p-6 shadow-premium relative">
-      <h3 id="modal-title" class="text-sm font-black font-mono tracking-wider uppercase text-zone-darkText mb-2">Внимание</h3>
+      <h3 id="modal-title" class="text-base font-extrabold font-mono tracking-wider uppercase text-zone-darkText mb-3">Внимание</h3>
       <p id="modal-desc" class="text-xs text-slate-500 mb-5 leading-relaxed">Вы уверены, что хотите выполнить это действие?</p>
       
       <!-- Input container (for prompt modal type) -->
@@ -117,7 +113,7 @@
       <!-- Control actions -->
       <div class="flex justify-end gap-3 text-xs font-mono">
         <button id="modal-btn-cancel" class="px-4 py-2.5 rounded-xl border border-zone-border text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-all">Отмена</button>
-        <button id="modal-btn-confirm" class="px-5 py-2.5 rounded-xl bg-zone-radiation bg-zone-accent text-black font-bold bg-[#A8FF3E] hover:opacity-90 transition-all">Подтвердить</button>
+        <button id="modal-btn-confirm" class="px-5 py-2.5 rounded-xl bg-zone-accent text-white font-bold hover:bg-zone-accentHover transition-all">Подтвердить</button>
       </div>
     </div>
   </div>
@@ -125,7 +121,6 @@
 
   <!-- ================= ЭКРАН АКТИВАЦИИ ЛИЦЕНЗИИ ================= -->
   <div id="activation-screen" class="fixed inset-0 bg-[#E2ECE9] z-40 flex items-center justify-center p-4">
-    <!-- -->
     <div class="max-w-md w-full bg-white border border-zone-border rounded-3xl p-8 relative overflow-hidden shadow-premium">
       <div class="absolute top-0 left-0 w-full h-1.5 bg-zone-accent"></div>
       
@@ -173,7 +168,6 @@
 
   <!-- ================= СИСТЕМНЫЙ LEFT SIDEBAR (НАВИГАЦИЯ) ================= -->
   <aside class="w-16 md:w-20 bg-zone-bg border-r border-zone-border flex flex-col items-center py-6 justify-between shrink-0 relative z-30">
-    <!-- -->
     <div class="flex flex-col items-center gap-6 w-full">
       <!-- Logo brand marker -->
       <div class="w-10 h-10 rounded-xl bg-zone-accent text-white flex items-center justify-center font-black font-mono shadow-flat cursor-pointer" onclick="clickGeigerManual()">
@@ -209,7 +203,6 @@
     
     <!-- VIEW A: DASHBOARD (ГЛАВНЫЙ ЭКРАН) -->
     <div id="view-dashboard" class="view-container active flex flex-col gap-6 p-4 sm:p-6 md:p-8">
-      <!-- -->
       
       <!-- HEADER -->
       <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-6 rounded-2xl border border-zone-border shadow-flat relative overflow-hidden">
@@ -434,7 +427,6 @@
 
         <!-- ТАКТИЧЕСКИЙ ЖУРНАЛ СОБЫТИЙ (5 колонок) -->
         <div class="lg:col-span-5 bg-white p-6 rounded-2xl border border-zone-border flex flex-col justify-between shadow-flat">
-          <!-- -->
           <div class="space-y-4">
             <div class="flex justify-between items-center pb-2 border-b border-zone-border">
               <h3 class="text-xs font-extrabold uppercase font-mono tracking-widest text-slate-700">
@@ -448,7 +440,7 @@
             </p>
 
             <!-- Event logger console viewport -->
-            <div id="terminal-event-log" class="bg-zone-darkest p-3 rounded-xl border border-zone-border max-h-[220px] overflow-y-auto space-y-1.5 font-mono text-[9px]">
+            <div id="terminal-event-log" class="bg-zone-darkest p-3 rounded-xl border border-zone-border h-[220px] overflow-y-auto space-y-1.5 font-mono text-[9px]">
               <div class="text-slate-600">[СИСТЕМА] Терминал успешно инициализирован.</div>
               <div class="text-zone-blue">[СЕТЬ] Успешное защищенное подключение к Firestore.</div>
             </div>
@@ -465,7 +457,6 @@
 
     <!-- VIEW B: FULL JOURNAL REGISTRY (СДЕЛКИ) -->
     <div id="view-reestr" class="view-container flex-col gap-6 p-4 sm:p-6 md:p-8">
-      <!-- -->
       <section class="bg-white p-6 rounded-2xl border border-zone-border shadow-flat">
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-5 pb-4 border-b border-zone-border/60">
           <div>
@@ -521,7 +512,6 @@
 
     <!-- VIEW C: LIVE ANALYTICS (ГРАФИКИ ПРИБЫЛИ) -->
     <div id="view-analytics" class="view-container flex-col gap-6 p-4 sm:p-6 md:p-8">
-      <!-- -->
       <section class="bg-white p-6 rounded-2xl border border-zone-border shadow-flat">
         <div class="mb-5 pb-4 border-b border-zone-border/60">
           <h3 class="text-xs font-extrabold uppercase font-mono tracking-widest text-zone-darkText">Торговая аналитика и статистика</h3>
@@ -538,7 +528,6 @@
 
     <!-- VIEW D: NOTEPAD (БЛОКНОТ БАРЫГИ) -->
     <div id="view-notepad" class="view-container flex-col gap-6 p-4 sm:p-6 md:p-8">
-      <!-- -->
       <section class="bg-white p-6 rounded-2xl border border-zone-border shadow-flat flex flex-col gap-4">
         <div class="pb-4 border-b border-zone-border/60 flex justify-between items-center">
           <div>
@@ -559,7 +548,6 @@
 
     <!-- VIEW E: ADMIN SaaS CONFIGURATION -->
     <div id="view-admin" class="view-container flex-col gap-6 p-4 sm:p-6 md:p-8">
-      <!-- -->
       <section class="bg-white p-6 rounded-2xl border border-zone-border shadow-flat max-w-4xl w-full mx-auto">
         <div class="flex justify-between items-center pb-4 border-b border-zone-border mb-6">
           <div class="flex items-center gap-3">
@@ -590,15 +578,15 @@
         </div>
 
         <!-- Рабочая область админа (Скрыта до авторизации) -->
-        <div id="admin-workspace" class="hidden space-y-6 animate-pulse-slow">
+        <div id="admin-workspace" class="hidden space-y-6">
           
           <!-- Настройка Firebase -->
           <div class="bg-zone-inputBg p-5 rounded-xl border border-zone-border">
             <h3 class="text-xs font-extrabold uppercase font-mono tracking-wider text-zone-blue mb-2">
-              🔗 1. Конфигурация глобальной базы Firebase
+              🔗 1. Настройка глобальной базы Firebase
             </h3>
             <p class="text-[11px] text-slate-500 mb-4 leading-relaxed">
-              Конфигурация Firebase уже жестко интегрирована в код приложения по умолчанию. При необходимости вставьте новые данные вашего Firebase-проекта:
+              Конфигурация Firebase уже жестко зашита в код по умолчанию. Если вы хотите привязать этот сайт под продажу к вашему собственному проекту, введите новые учетные данные ниже:
             </p>
 
             <div class="space-y-4">
@@ -606,7 +594,7 @@
                         class="w-full bg-white border border-zone-border rounded-xl p-3 text-[10px] font-mono text-slate-800 outline-none focus:border-zone-blue transition-all"></textarea>
               
               <button onclick="saveFirebaseConfigFromAdmin()" class="px-5 py-2.5 rounded-xl bg-zone-blue hover:bg-cyan-600 text-white text-xs font-extrabold uppercase tracking-widest font-mono transition-all">
-                Сохранить конфигурацию и перезагрузить
+                Сохранить конфигурацию и перезапустить
               </button>
             </div>
           </div>
@@ -658,7 +646,7 @@
                         <th class="p-2.5">Ключ подписки</th>
                         <th class="p-2.5">Срок</th>
                         <th class="p-2.5">Статус</th>
-                        <th class="p-2.5 text-right">Удалить</th>
+                        <th class="p-2.5 text-right">Управление</th>
                       </tr>
                     </thead>
                     <tbody id="keys-tbody" class="divide-y divide-zone-border/40">
@@ -673,6 +661,20 @@
             </div>
           </div>
 
+          <!-- СМЕНА ПАРОЛЯ АДМИНИСТРАТОРА (НОВАЯ ФУНКЦИЯ ДЛЯ ЗАЩИТЫ) -->
+          <div class="bg-zone-inputBg p-5 rounded-xl border border-zone-border mt-4">
+            <h3 class="text-xs font-extrabold uppercase font-mono tracking-wider text-zone-red mb-2">
+              🔒 3. Безопасность пульта администратора
+            </h3>
+            <p class="text-[11px] text-slate-500 mb-4 leading-relaxed font-mono">
+              По умолчанию пароль для входа в панель администратора: <strong class="text-zone-orange">SC-ADMIN-99X</strong>. Вы можете сменить его. Новый пароль будет захеширован по алгоритму SHA-256 и сохранен в Firestore.
+            </p>
+
+            <button onclick="changeAdminPasswordOnline()" class="px-5 py-2.5 rounded-xl bg-zone-red hover:bg-red-700 text-white text-xs font-extrabold uppercase tracking-widest font-mono transition-all">
+              Сменить мастер-пароль панели
+            </button>
+          </div>
+
         </div>
       </section>
     </div>
@@ -681,7 +683,9 @@
 
 
   <!-- ================= TACTICAL ES6 SAAS MODULE SYSTEM ================= -->
-  <!-- -->
+  <!-- ChartJS CDN for advanced charts -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
   <script type="module">
     const { 
       initializeApp, getAuth, signInAnonymously, onAuthStateChanged,
@@ -689,10 +693,10 @@
     } = window.FirebaseLib || {};
 
     const LOCAL_PREFIX = 'sc_market_pro_';
-    const ADMIN_DEFAULT_PASS = "SC-ADMIN-99X"; // Мастер-пароль админа
+    const ADMIN_DEFAULT_PASS_HASH = "8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918"; // SHA-256 Hash of SC-ADMIN-99X
     const appId = 'stalzone-market-pro';
 
-    // Вшитая конфигурация Firebase клиента
+    // Вшитая конфигурация Firebase клиента (Облако STALZONE)
     const HARDCODED_FIREBASE_CONFIG = {
       apiKey: "AIzaSyASoAF_R2hbWrcuMQbl8qGJv5E5BOMb2fE",
       authDomain: "sc-market-72b69.firebaseapp.com",
@@ -773,6 +777,15 @@
       } finally {
         clearTimeout(timeoutHandle);
       }
+    }
+
+    // SHA-256 Клиентское хеширование (Защита от F12!)
+    async function sha256(string) {
+      const utf8 = new TextEncoder().encode(string);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', utf8);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+      return hashHex;
     }
 
     // ================= CUSTOM INTERACTIVE MODALS =================
@@ -867,7 +880,7 @@
 
         onAuthStateChanged(auth, async (user) => {
           if (user) {
-            statusDot.style.backgroundColor = "#A8FF3E";
+            statusDot.style.backgroundColor = "#114B31";
             statusText.innerText = "Облако активно";
             statusText.style.color = "#114B31";
             await syncAndValidateKeySession();
@@ -963,6 +976,7 @@
       const term = document.getElementById('main-terminal');
       term.classList.remove('hidden');
       term.style.display = 'flex';
+      term.style.flexDirection = 'column';
       
       loadTrades();
       loadCloudNotepad();
@@ -1103,29 +1117,26 @@
       showToast("Вы вышли из учетной записи.", "info");
     }
 
-    document.getElementById('btn-activate-license').onclick = window.activateLicense;
-    document.getElementById('btn-logout-license').onclick = window.logoutLicense;
-
 
     // ================= КАЛЬКУЛЯТОР ФИНАНСОВ =================
     window.switchCalculator = function(mode) {
       currentCalculator = mode;
       playSfx('geiger_click');
       
-      const tabDirect = document.getElementById('tab-direct');
-      const tabReverse = document.getElementById('tab-reverse');
+      const tabDirect = document.getElementById('btn-tab-direct');
+      const tabReverse = document.getElementById('btn-tab-reverse');
       const panelDirect = document.getElementById('panel-direct-calc');
       const panelReverse = document.getElementById('panel-reverse-calc');
 
       if (mode === 'direct') {
-        tabDirect.className = "tab-active-rad";
-        tabReverse.className = "tab-inactive";
+        tabDirect.className = "flex-1 py-2 rounded-lg text-xs font-bold uppercase tracking-wider font-mono transition-all bg-zone-accent text-white shadow-flat";
+        tabReverse.className = "flex-1 py-2 rounded-lg text-xs font-bold uppercase tracking-wider font-mono transition-all text-slate-500 hover:text-zone-darkText";
         panelDirect.classList.remove('hidden');
         panelReverse.classList.add('hidden');
         calculateDirect();
       } else {
-        tabReverse.className = "tab-active-orange";
-        tabDirect.className = "tab-inactive";
+        tabReverse.className = "flex-1 py-2 rounded-lg text-xs font-bold uppercase tracking-wider font-mono transition-all bg-zone-accent text-white shadow-flat";
+        tabDirect.className = "flex-1 py-2 rounded-lg text-xs font-bold uppercase tracking-wider font-mono transition-all text-slate-500 hover:text-zone-darkText";
         panelReverse.classList.remove('hidden');
         panelDirect.classList.add('hidden');
         calculateReverse();
@@ -1215,7 +1226,7 @@
         text.innerText = "Стабильный флип.";
         text.style.color = "#0A84FF";
       } else {
-        bullet.style.backgroundColor = "#A8FF3E";
+        bullet.style.backgroundColor = "#114B31";
         text.innerText = "Безопасный флип (ROI > 40%)";
         text.style.color = "#114B31";
       }
@@ -1653,14 +1664,16 @@
         const configRef = doc(db, 'artifacts', appId, 'public', 'data', 'admin', 'config');
         let configSnap = await getDoc(configRef);
         
-        let correctPassword = ADMIN_DEFAULT_PASS;
+        let correctPasswordHash = ADMIN_DEFAULT_PASS_HASH;
         if (!configSnap.exists()) {
-          await setDoc(configRef, { password: ADMIN_DEFAULT_PASS });
+          await setDoc(configRef, { passwordHash: ADMIN_DEFAULT_PASS_HASH });
         } else {
-          correctPassword = configSnap.data().password || ADMIN_DEFAULT_PASS;
+          correctPasswordHash = configSnap.data().passwordHash || ADMIN_DEFAULT_PASS_HASH;
         }
 
-        if (pass === correctPassword) {
+        const enteredHash = await sha256(pass);
+
+        if (enteredHash === correctPasswordHash) {
           isAdminAuthorized = true;
           document.getElementById('admin-auth-gate').classList.add('hidden');
           document.getElementById('admin-workspace').classList.remove('hidden');
@@ -1679,13 +1692,33 @@
       }
     }
 
+    window.changeAdminPasswordOnline = async function() {
+      const newPass = await showCustomPrompt("Смена пароля", "Введите новый мастер-пароль администратора:");
+      if (!newPass) return;
+
+      const confirmPass = await showCustomPrompt("Смена пароля", "Повторите новый мастер-пароль:");
+      if (newPass !== confirmPass) {
+        showToast("Пароли не совпадают!", "error");
+        return;
+      }
+
+      showToast("Запись нового защищенного пароля в облако...", "info");
+      try {
+        const passHash = await sha256(newPass);
+        const configRef = doc(db, 'artifacts', appId, 'public', 'data', 'admin', 'config');
+        await withTimeout(setDoc(configRef, { passwordHash: passHash }), 8000, "Превышено время ожидания записи пароля.");
+        showToast("Мастер-пароль администратора успешно изменен!", "success");
+        logTerminalEvent("Пароль администратора изменен в облаке.", "warning");
+      } catch (e) {
+        showToast("Ошибка смены пароля: " + e.message, "error");
+      }
+    }
+
     async function loadAllLicenseKeys() {
       const tbody = document.getElementById('keys-tbody');
       tbody.innerHTML = '';
 
       if (!db) return;
-
-      const { collection, onSnapshot } = window.FirebaseLib;
 
       try {
         const qKeys = collection(db, 'artifacts', appId, 'public', 'data', 'license_keys');
@@ -1721,27 +1754,29 @@
 
       licenseKeys.forEach(k => {
         const row = document.createElement('tr');
-        row.className = "hover:bg-slate-50 border-b border-zone-border text-[11px] font-mono";
+        row.style.borderBottom = "1px solid #141E2E";
+        row.style.fontSize = "10px";
+        row.style.fontFamily = "'Fira Code', monospace";
+        row.className = "hover:bg-slate-100";
         
         const stateBadge = k.status === 'active' 
-          ? `<span class="text-zone-radiation text-zone-accent font-bold">[ Свободен ]</span>` 
-          : `<span class="text-slate-400 font-bold">[ Использован ]</span>`;
+          ? `<span style="color:#114B31;font-weight:800;">Активен</span>` 
+          : `<span style="color:#C0D0E0;font-weight:700;">Использован</span>`;
 
         row.innerHTML = `
-          <td class="p-2.5 font-bold text-zone-orange select-all hover:underline cursor-pointer" title="Нажмите для копирования">
+          <td style="padding:8px 12px;color:#FF9500;font-weight:700;cursor:pointer;" class="key-item-td">
             ${k.key}
           </td>
-          <td class="p-2.5 text-slate-600 font-bold">${k.days} д.</td>
-          <td class="p-2.5">${stateBadge}</td>
-          <td class="p-2.5 text-right">
-            <button class="btn-delete-key text-slate-400 hover:text-zone-red font-bold uppercase text-[9px] tracking-wider transition-all">
-              [ Стереть ]
+          <td style="padding:8px 12px;color:#1B2A26;">${k.days}д</td>
+          <td style="padding:8px 12px;">${stateBadge}</td>
+          <td style="padding:8px 12px;text-align:right;">
+            <button class="delete-key-btn" style="color:#FF3B30;font-size:10px;font-family:'Fira Code',monospace;font-weight:700;background:none;border:none;cursor:pointer;text-transform:uppercase;letter-spacing:0.05em;transition:color 0.15s;">
+              Удалить
             </button>
           </td>
         `;
-
-        row.querySelector('td').onclick = () => copyToClipboard(k.key);
-        row.querySelector('.btn-delete-key').onclick = () => window.deleteLicenseKey(k.key);
+        row.querySelector('.key-item-td').onclick = () => copyToClipboard(k.key);
+        row.querySelector('.delete-key-btn').onclick = () => window.deleteLicenseKey(k.key);
         tbody.appendChild(row);
       });
     }
@@ -1761,8 +1796,6 @@
 
       if (!db) return;
 
-      const { doc, setDoc } = window.FirebaseLib;
-
       try {
         const keyDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'license_keys', keyString);
         await withTimeout(setDoc(keyDocRef, newKeyObj), 8000, "Превышено время ожидания записи ключа в облако.");
@@ -1780,8 +1813,6 @@
 
     window.deleteLicenseKey = async function(keyString) {
       if (!confirm(`Удалить лицензионный ключ ${keyString}?`)) return;
-
-      const { doc, deleteDoc } = window.FirebaseLib;
 
       try {
         const keyDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'license_keys', keyString);
@@ -1864,13 +1895,5 @@
       initSystem();
     }
   </script>
-
-  <!-- Заглушки для корректной работы кнопок закрытия модалок -->
-  <script>
-    document.getElementById('admin-btn-cancel').onclick = () => {
-      document.getElementById('admin-panel').classList.add('hidden');
-    };
-  </script>
-
 </body>
 </html>
