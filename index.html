@@ -789,7 +789,7 @@
 
     window.updateRiskAssessment = function(profit,roi,buy){
       const b=document.getElementById('risk-bullet'), t=document.getElementById('risk-text');
-      if(buy<=0){b.className='w-3 h-3 rounded-full bg-slate-300';t.innerText='Ожидание параметров...';t.className='text-slate-500 font-mono';return;}
+      if(buy<=0){b.className='w-3 h-3 rounded-full bg-slate-300';t.innerText='Ожидание параметры...';t.className='text-slate-500 font-mono';return;}
       if(profit<0){b.className='w-3 h-3 rounded-full bg-zone-red animate-pulse';t.innerText='Убыток!';t.className='text-zone-red font-mono font-bold';}
       else if(roi<15){b.className='w-3 h-3 rounded-full bg-zone-orange';t.innerText='Высокий риск (ROI<15%)';t.className='text-zone-orange font-mono';}
       else if(roi<40){b.className='w-3 h-3 rounded-full bg-zone-cyan';t.innerText='Стабильный флип';t.className='text-zone-cyan font-mono';}
@@ -1143,7 +1143,7 @@
       const r=new FileReader(); r.onload=async ev=>{
         try{
           const p=JSON.parse(ev.target.result);
-          if(Array.isArray(p)){ trades=p; for(const t of trades) await _saveTrade(t); window.showToast('Импортировано!','success'); }
+          if(Array.isArray(p)){ trades=p; for(const t of trades) await _saveTrade(t); window.showToast('Импорт!','success'); }
         }catch(err){window.showToast('Ошибка файла!','error');}
       }; r.readAsText(f);
     };
