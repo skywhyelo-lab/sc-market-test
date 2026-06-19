@@ -19,16 +19,16 @@
           },
           colors: {
             zone: {
-              bg: '#E2ECE9',         /* Мягкий пепельно-зеленый фон по референсу */
+              bg: '#E2ECE9',         /* Мягкий пепельно-зеленый фон */
               panel: '#FFFFFF',      /* Чистый белый для карточек */
               border: '#CAD6D2',     /* Граница оттенка шалфея */
               inputBg: '#F0F5F3',    /* Легкий мятный фон инпутов */
-              darkText: '#1B2A26',   /* Глубокий темный хвойный для текста */
-              accent: '#114B31',     /* Фирменный темно-зеленый для кнопок */
+              darkText: '#1B2A26',   /* Глубокий темный хвойный */
+              accent: '#114B31',     /* Фирменный темно-зеленый */
               accentHover: '#185F3F',
-              cyan: '#0A84FF',       /* Мягкий синий */
-              orange: '#FF9500',     /* Янтарный */
-              red: '#FF3B30',        /* Красный */
+              cyan: '#0A84FF',       
+              orange: '#FF9500',     
+              red: '#FF3B30',        
               greenDim: '#E8F5E9'
             }
           },
@@ -42,26 +42,13 @@
   </script>
   
   <style>
-    /* Styling Scrollbars to match light military aesthetic */
-    ::-webkit-scrollbar {
-      width: 6px;
-      height: 6px;
-    }
-    ::-webkit-scrollbar-track {
-      background: #E2ECE9;
-    }
-    ::-webkit-scrollbar-thumb {
-      background: #CAD6D2;
-      border-radius: 4px;
-    }
-    ::-webkit-scrollbar-thumb:hover {
-      background: #114B31;
-    }
+    /* Styling scrollbars */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #E2ECE9; }
+    ::-webkit-scrollbar-thumb { background: #CAD6D2; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #114B31; }
     
-    body {
-      background-color: #E2ECE9;
-      color: #1B2A26;
-    }
+    body { background-color: #E2ECE9; color: #1B2A26; }
 
     .sidebar-active {
       background-color: #E8F5E9;
@@ -69,12 +56,8 @@
       border-right: 3px solid #114B31;
     }
     
-    .view-container {
-      display: none;
-    }
-    .view-container.active {
-      display: flex;
-    }
+    .view-container { display: none; }
+    .view-container.active { display: flex; }
     
     .quick-btn {
       font-size: 9px;
@@ -94,17 +77,29 @@
     }
   </style>
 
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, doc, setDoc, getDoc, updateDoc, collection, onSnapshot, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    // Строгая глобальная регистрация
+    window.FirebaseLib = {
+      initializeApp, getAuth, signInAnonymously, onAuthStateChanged,
+      getFirestore, doc, setDoc, getDoc, updateDoc, collection, onSnapshot, deleteDoc
+    };
+    if (window.onFirebaseLoaded) window.onFirebaseLoaded();
+  </script>
 </head>
 <body class="min-h-screen flex relative overflow-x-hidden text-zone-darkText">
 
   <!-- Контейнер для всплывающих уведомлений -->
   <div id="toast-container" class="fixed top-6 right-6 z-50 flex flex-col gap-3 max-w-sm w-full pointer-events-none font-sans"></div>
 
-  <!-- CUSTOM INTERACTIVE MODALS -->
+  <!-- Модальное окно (вместо alert/confirm) -->
   <div id="custom-modal-root" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100] flex items-center justify-center p-4 hidden">
     <div class="max-w-md w-full bg-white border border-zone-border rounded-2xl p-6 shadow-premium relative">
       <h3 id="modal-title" class="text-base font-extrabold font-mono tracking-wider uppercase text-zone-darkText mb-3">Внимание</h3>
-      <p id="modal-desc" class="text-xs text-slate-500 mb-5 leading-relaxed">Вы уверены, что хотите выполнить это действие?</p>
+      <p id="modal-desc" class="text-xs text-slate-500 mb-5 leading-relaxed"></p>
       
       <div id="modal-input-container" class="mb-5 hidden">
         <input type="text" id="modal-text-input" class="w-full bg-zone-inputBg border border-zone-border focus:border-zone-accent rounded-xl px-4 py-2.5 text-xs text-slate-800 outline-none font-mono">
@@ -118,7 +113,7 @@
   </div>
 
 
-  <!-- ================= ЭКРАН АКТИВАЦИИ ЛИЦЕНЗИИ ================= -->
+  <!-- ================= ЭКРАН АКТИВАЦИИ ================= -->
   <div id="activation-screen" class="fixed inset-0 bg-[#E2ECE9] z-40 flex items-center justify-center p-4">
     <div class="max-w-md w-full bg-white border border-zone-border rounded-3xl p-8 relative overflow-hidden shadow-premium">
       <div class="absolute top-0 left-0 w-full h-1.5 bg-zone-accent"></div>
@@ -136,16 +131,13 @@
       </div>
 
       <div id="auth-error-banner" class="hidden bg-zone-red/10 border border-zone-red/30 rounded-xl p-4 text-xs text-zone-red font-mono leading-relaxed mb-4">
-        <strong class="block text-zone-darkText font-bold mb-1">⚠️ ОШИБКА НАСТРОЙКИ FIREBASE AUTH:</strong>
-        В вашем проекте Firebase отключен анонимный вход.<br><br>
-        <strong class="block text-zone-darkText font-bold mb-0.5">Как исправить:</strong>
-        1. Включите провайдер <strong class="text-zone-darkText font-bold">"Anonymous"</strong> в Firebase Console -> Authentication.<br>
-        2. Обновите страницу.
+        <strong class="block text-zone-darkText font-bold mb-1">⚠️ ОШИБКА НАСТРОЙКИ СЕТИ:</strong>
+        Включите провайдер <strong class="text-zone-darkText font-bold">"Anonymous"</strong> в Firebase Console -> Authentication.
       </div>
 
       <div class="space-y-4">
         <div>
-          <label class="block text-[9px] font-bold uppercase tracking-widest text-slate-500 mb-2">Введите ваш ключ доступа:</label>
+          <label class="block text-[9px] font-bold uppercase tracking-widest text-slate-500 mb-2">Введите ключ доступа:</label>
           <input type="text" id="license-key-input" placeholder="SC-DXX-XXXX-XXXX-XXXX" 
                  class="w-full bg-zone-inputBg border border-zone-border rounded-xl px-4 py-3 text-center text-xs font-bold tracking-wider font-mono text-zone-orange uppercase placeholder-slate-400 focus:border-zone-orange outline-none transition-all">
         </div>
@@ -156,140 +148,129 @@
 
         <div class="flex justify-between items-center pt-4 border-t border-zone-border/60 text-[10px] font-mono">
           <span class="text-slate-500">Нет ключа доступа?</span>
-          <button onclick="toggleAdminPanelDirect()" class="text-zone-accent hover:underline uppercase font-bold tracking-wider">Панель управления</button>
+          <button onclick="switchView('admin-auth')" class="text-zone-accent hover:underline uppercase font-bold tracking-wider">Панель управления</button>
         </div>
       </div>
     </div>
   </div>
 
 
-  <!-- ================= СИСТЕМНЫЙ LEFT SIDEBAR (НАВИГАЦИЯ) ================= -->
-  <aside id="main-sidebar" class="hidden w-20 bg-white border-r border-zone-border flex flex-col items-center py-6 justify-between shrink-0 relative z-30 shadow-flat">
-    <div class="flex flex-col items-center gap-6 w-full">
-      <!-- Logo brand marker -->
-      <div class="w-12 h-12 rounded-xl bg-zone-accent text-white flex items-center justify-center font-black font-mono shadow-flat text-lg">
-        SZ
+  <!-- ================= ГЛАВНЫЙ ИНТЕРФЕЙС ТЕРМИНАЛА (FLEX ЛЕЙАУТ) ================= -->
+  <div id="main-app" class="hidden w-full min-h-screen">
+    
+    <!-- SIDEBAR (ЛЕВОЕ МЕНЮ) -->
+    <aside class="w-20 md:w-64 bg-white border-r border-zone-border flex flex-col justify-between shrink-0 shadow-flat z-20">
+      
+      <div class="p-4 border-b border-zone-border hidden md:block">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-lg bg-zone-accent flex items-center justify-center text-white">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+          </div>
+          <div class="leading-tight">
+            <h1 class="font-black font-mono text-sm tracking-wider uppercase text-zone-darkText">STALZONE</h1>
+            <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">SaaS Pro</span>
+          </div>
+        </div>
       </div>
 
-      <!-- Navigation links -->
-      <nav class="flex flex-col gap-2 w-full px-2">
-        <button onclick="switchView('dashboard')" id="nav-dashboard" class="sidebar-active w-full py-3 rounded-xl flex flex-col items-center justify-center transition-all text-xs font-bold" title="Dashboard">
-          📊 <span class="text-[8px] uppercase tracking-wider mt-1">Хаб</span>
+      <!-- Иконка для мобилок -->
+      <div class="p-4 border-b border-zone-border md:hidden flex justify-center">
+        <div class="w-10 h-10 rounded-lg bg-zone-accent flex items-center justify-center text-white">
+          <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+        </div>
+      </div>
+
+      <nav class="flex-grow py-6 flex flex-col gap-2 font-mono text-xs font-bold uppercase tracking-wider">
+        <button onclick="switchView('dashboard')" id="nav-dashboard" class="w-full flex items-center gap-4 px-6 py-4 text-slate-500 hover:text-zone-accent hover:bg-[#F0F5F3] transition-all sidebar-active">
+          <svg class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
+          <span class="hidden md:block">Главная (Анализ)</span>
         </button>
-        <button onclick="switchView('reestr')" id="nav-reestr" class="w-full py-3 rounded-xl flex flex-col items-center justify-center text-slate-500 hover:text-zone-accent hover:bg-slate-50 transition-all text-xs font-bold" title="Сделки">
-          📋 <span class="text-[8px] uppercase tracking-wider mt-1">Реестр</span>
+        <button onclick="switchView('journal')" id="nav-journal" class="w-full flex items-center gap-4 px-6 py-4 text-slate-500 hover:text-zone-accent hover:bg-[#F0F5F3] transition-all">
+          <svg class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg>
+          <span class="hidden md:block">Реестр Сделок</span>
         </button>
-        <button onclick="switchView('analytics')" id="nav-analytics" class="w-full py-3 rounded-xl flex flex-col items-center justify-center text-slate-500 hover:text-zone-accent hover:bg-slate-50 transition-all text-xs font-bold" title="Аналитика">
-          📈 <span class="text-[8px] uppercase tracking-wider mt-1">Графики</span>
+        <button onclick="switchView('notes')" id="nav-notes" class="w-full flex items-center gap-4 px-6 py-4 text-slate-500 hover:text-zone-accent hover:bg-[#F0F5F3] transition-all">
+          <svg class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+          <span class="hidden md:block">Блокнот Барыги</span>
         </button>
-        <button onclick="switchView('notepad')" id="nav-notepad" class="w-full py-3 rounded-xl flex flex-col items-center justify-center text-slate-500 hover:text-zone-accent hover:bg-slate-50 transition-all text-xs font-bold" title="Блокнот">
-          📝 <span class="text-[8px] uppercase tracking-wider mt-1">Заметки</span>
+        <button onclick="switchView('admin-auth')" id="nav-admin" class="w-full flex items-center gap-4 px-6 py-4 text-slate-500 hover:text-zone-accent hover:bg-[#F0F5F3] transition-all mt-auto border-t border-zone-border">
+          <svg class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+          <span class="hidden md:block">Управление</span>
         </button>
       </nav>
-    </div>
 
-    <button onclick="toggleAdminPanelDirect()" id="nav-admin" class="w-12 h-12 rounded-xl border border-zone-border flex items-center justify-center text-slate-500 hover:text-zone-accent hover:bg-zone-inputBg transition-all text-sm" title="Администратор">
-      ⚙️
-    </button>
-  </aside>
+      <div class="p-4 border-t border-zone-border bg-[#F0F5F3] flex flex-col gap-3">
+        <div class="flex flex-col md:flex-row items-center justify-between gap-2">
+          <div class="flex items-center gap-2">
+            <span id="connection-status-dot" class="w-2 h-2 rounded-full bg-zone-orange animate-ping shrink-0"></span>
+            <span id="connection-status-text" class="text-[9px] font-bold uppercase font-mono text-slate-500 hidden md:block">Синхронизация</span>
+          </div>
+        </div>
+        <div class="text-center md:text-left">
+          <span class="text-[8px] uppercase tracking-widest font-bold text-slate-400 block mb-0.5">Лицензия:</span>
+          <strong id="license-countdown" class="text-[10px] md:text-xs font-mono text-zone-accent block">...</strong>
+        </div>
+        <button onclick="logoutLicense()" class="w-full text-[9px] md:text-[10px] font-bold uppercase font-mono text-zone-red border border-zone-red/30 py-2 rounded-lg hover:bg-zone-red hover:text-white transition-all">
+          <span class="hidden md:block">Выйти из аккаунта</span>
+          <span class="md:hidden">Выход</span>
+        </button>
+      </div>
 
+    </aside>
 
-  <!-- ================= ОСНОВНОЙ РАБОЧИЙ ЭКРАН ================= -->
-  <main id="main-terminal" class="hidden flex-grow flex-col min-h-screen overflow-y-auto relative z-10 w-full">
-    
-    <!-- VIEW 1: DASHBOARD (ГЛАВНЫЙ ЭКРАН) -->
-    <div id="view-dashboard" class="view-container active flex-col gap-6 p-4 sm:p-6 md:p-8">
+    <!-- CONTENT AREA -->
+    <main class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 flex flex-col gap-6">
       
-      <!-- HEADER -->
-      <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-6 rounded-2xl border border-zone-border shadow-flat relative overflow-hidden">
-        <div class="absolute inset-y-0 left-0 w-1.5 bg-zone-accent"></div>
-        
-        <div class="flex items-center gap-4">
-          <div class="bg-zone-greenDim border border-zone-accent/20 p-2.5 rounded-xl text-zone-accent">
-            ⚡
-          </div>
-          <div>
-            <h1 class="text-lg font-black tracking-widest uppercase text-zone-darkText font-mono">STALZONE TERMINAL</h1>
-            <p class="text-[9px] text-slate-400 font-extrabold uppercase tracking-widest mt-0.5">SaaS Pro Лицензия активна</p>
-          </div>
+      <!-- СТАТИСТИКА (Всегда видна вверху) -->
+      <section class="grid grid-cols-2 lg:grid-cols-4 gap-4 shrink-0">
+        <div class="bg-white p-5 rounded-2xl border border-zone-border shadow-flat">
+          <p class="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Сумма в обороте</p>
+          <p id="stat-total-invested" class="text-xl font-black font-mono text-zone-darkText">0 ₽</p>
+          <span class="text-[9px] text-slate-500 font-medium mt-1 block">Активные закупки на аукционе</span>
         </div>
-
-        <div class="flex flex-wrap gap-2 items-center w-full md:w-auto">
-          <div class="bg-zone-inputBg px-3 py-2 rounded-xl border border-zone-border flex items-center gap-2 text-xs font-mono">
-            <span id="connection-status-dot" class="w-2 h-2 rounded-full bg-zone-orange animate-pulse"></span>
-            <span id="connection-status-text" class="text-slate-500 text-[10px] uppercase font-bold">Связь...</span>
-          </div>
-
-          <div class="bg-zone-inputBg px-4 py-2 rounded-xl border border-zone-border flex items-center gap-3 text-xs font-mono">
-            <div class="text-left">
-              <span class="text-slate-400 block text-[8px] uppercase font-bold">Окончание сессии:</span>
-              <strong id="license-countdown" class="text-zone-accent">Вычисление...</strong>
-            </div>
-          </div>
-
-          <button onclick="logoutLicense()" class="bg-zone-red/10 hover:bg-zone-red/20 text-zone-red px-3.5 py-2 rounded-xl border border-zone-red/20 transition-all text-xs font-mono font-bold">
-            Выйти
-          </button>
+        <div class="bg-white p-5 rounded-2xl border border-zone-border shadow-flat">
+          <p class="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Ожидаемая выручка</p>
+          <p id="stat-expected-revenue" class="text-xl font-black font-mono text-zone-cyan">0 ₽</p>
+          <span class="text-[9px] text-slate-500 font-medium mt-1 block">За вычетом налога биржи (5%)</span>
         </div>
-      </header>
-
-      <!-- ТАКТИЧЕСКИЕ ПОКАЗАТЕЛИ -->
-      <section class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div class="bg-white p-5 rounded-2xl border border-zone-border flex justify-between items-center shadow-flat">
-          <div>
-            <p class="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">В обороте</p>
-            <p id="dashboard-total-invested" class="text-xl font-black font-mono text-zone-darkText">0 ₽</p>
-            <span class="text-[9px] text-slate-400 font-medium mt-0.5 block">Активные закупки</span>
-          </div>
+        <div class="bg-white p-5 rounded-2xl border border-zone-border shadow-flat ring-1 ring-zone-accent/20">
+          <p class="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Чистая прибыль</p>
+          <p id="stat-total-profit" class="text-xl font-black font-mono text-zone-accent">0 ₽</p>
+          <span id="stat-success-count" class="text-[9px] text-zone-accent font-bold mt-1 block">Сделок завершено: 0</span>
         </div>
-
-        <div class="bg-white p-5 rounded-2xl border border-zone-border flex justify-between items-center shadow-flat">
-          <div>
-            <p class="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Ожид. выручка</p>
-            <p id="dashboard-expected-revenue" class="text-xl font-black font-mono text-zone-blue">0 ₽</p>
-            <span class="text-[9px] text-slate-400 font-medium mt-0.5 block">После вычета 5%</span>
-          </div>
-        </div>
-
-        <div class="bg-white p-5 rounded-2xl border border-zone-border flex justify-between items-center shadow-flat ring-1 ring-zone-accent/20 bg-gradient-to-br from-white to-zone-greenDim/30">
-          <div>
-            <p class="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Чистая прибыль</p>
-            <p id="dashboard-total-profit" class="text-xl font-black font-mono text-zone-accent">0 ₽</p>
-            <span id="dashboard-success-count" class="text-[9px] text-zone-accent/80 font-bold mt-0.5 block">Сделок завершено: 0</span>
-          </div>
-        </div>
-
-        <div class="bg-white p-5 rounded-2xl border border-zone-border flex justify-between items-center shadow-flat">
-          <div>
-            <p class="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Средний ROI</p>
-            <p id="dashboard-avg-roi" class="text-xl font-black font-mono text-zone-orange">0%</p>
-            <span class="text-[9px] text-slate-400 font-medium mt-0.5 block">Эффективность</span>
-          </div>
+        <div class="bg-white p-5 rounded-2xl border border-zone-border shadow-flat">
+          <p class="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Окупаемость (ROI)</p>
+          <p id="stat-avg-roi" class="text-xl font-black font-mono text-zone-orange">0%</p>
+          <span class="text-[9px] text-slate-500 font-medium mt-1 block">Средняя эффективность инвестиций</span>
         </div>
       </section>
 
-      <!-- КАЛЬКУЛЯТОРЫ И ЛОГ -->
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <!-- VIEW: DASHBOARD -->
+      <div id="view-dashboard" class="view-container active flex-col lg:flex-row gap-6">
         
-        <!-- Калькулятор лота (7 колонок) -->
-        <div class="lg:col-span-7 flex flex-col gap-4">
-          <div class="bg-white p-1.5 rounded-xl border border-zone-border flex gap-2 shadow-sm">
-            <button id="btn-tab-direct" onclick="switchCalculator('direct')" class="flex-1 py-2.5 rounded-lg text-[11px] font-bold uppercase tracking-wider font-mono transition-all bg-zone-accent text-white shadow-flat">
+        <!-- КАЛЬКУЛЯТОР (Левая колонка) -->
+        <div class="lg:w-2/3 flex flex-col gap-5">
+          <div class="bg-white p-1.5 rounded-xl border border-zone-border flex gap-2 shadow-flat">
+            <button id="tab-direct" onclick="switchCalculator('direct')" class="flex-1 py-3 rounded-lg text-[10px] font-bold uppercase tracking-wider font-mono transition-all bg-zone-inputBg text-zone-accent border border-zone-border">
               Прямой расчет
             </button>
-            <button id="btn-tab-reverse" onclick="switchCalculator('reverse')" class="flex-1 py-2.5 rounded-lg text-[11px] font-bold uppercase tracking-wider font-mono transition-all text-slate-500 hover:text-zone-darkText">
+            <button id="tab-reverse" onclick="switchCalculator('reverse')" class="flex-1 py-3 rounded-lg text-[10px] font-bold uppercase tracking-wider font-mono transition-all text-slate-400 hover:text-slate-600 border border-transparent">
               Обратный расчет
             </button>
           </div>
 
-          <div class="bg-white p-6 rounded-2xl border border-zone-border flex flex-col justify-between min-h-[420px] shadow-flat">
-            
-            <!-- Прямой -->
+          <div class="bg-white p-6 rounded-2xl border border-zone-border shadow-flat flex flex-col justify-between min-h-[400px]">
+            <!-- Прямой расчет -->
             <div id="panel-direct-calc" class="space-y-5">
+              <div class="flex justify-between items-center mb-2 pb-3 border-b border-slate-100">
+                <h3 class="text-xs font-extrabold uppercase font-mono tracking-widest text-zone-darkText">Прямой анализ лота</h3>
+                <span class="text-[9px] font-mono text-slate-400 uppercase bg-slate-50 px-2 py-1 rounded">Налог биржи: 5%</span>
+              </div>
+              
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <div>
-                  <label class="block text-[9px] font-bold uppercase tracking-wider text-slate-500 mb-2">Цена закупки:</label>
-                  <div class="flex items-center bg-zone-inputBg border border-zone-border focus-within:border-zone-accent rounded-xl px-3 transition-all">
+                  <label class="block text-[9px] font-bold uppercase tracking-wider text-slate-500 mb-2">Цена покупки:</label>
+                  <div class="flex items-center bg-zone-inputBg border border-zone-border focus-within:border-zone-accent rounded-xl px-4 transition-all">
                     <input type="number" id="direct-buy" oninput="calculateDirect()" placeholder="120000" class="w-full bg-transparent border-none outline-none py-3 font-bold font-mono text-zone-darkText text-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
                     <span class="text-xs font-mono text-slate-400 ml-2">₽</span>
                   </div>
@@ -303,7 +284,7 @@
 
                 <div>
                   <label class="block text-[9px] font-bold uppercase tracking-wider text-slate-500 mb-2">Цена продажи:</label>
-                  <div class="flex items-center bg-zone-inputBg border border-zone-border focus-within:border-zone-accent rounded-xl px-3 transition-all">
+                  <div class="flex items-center bg-zone-inputBg border border-zone-border focus-within:border-zone-accent rounded-xl px-4 transition-all">
                     <input type="number" id="direct-sell" oninput="calculateDirect()" placeholder="190000" class="w-full bg-transparent border-none outline-none py-3 font-bold font-mono text-zone-darkText text-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
                     <span class="text-xs font-mono text-slate-400 ml-2">₽</span>
                   </div>
@@ -311,742 +292,863 @@
                     <button onclick="multiplySell(1.15)" class="quick-btn">+15%</button>
                     <button onclick="multiplySell(1.30)" class="quick-btn">+30%</button>
                     <button onclick="multiplySell(1.50)" class="quick-btn">+50%</button>
-                    <button onclick="multiplySell(2.00)" class="quick-btn">х2</button>
+                    <button onclick="multiplySell(2.00)" class="quick-btn">х2.0</button>
                   </div>
                 </div>
               </div>
 
-              <div class="bg-zone-inputBg p-5 rounded-xl border border-zone-border grid grid-cols-2 gap-y-3 gap-x-4 text-xs font-mono">
+              <div class="bg-slate-50 p-5 rounded-xl border border-slate-200 grid grid-cols-2 gap-y-3 gap-x-4 text-xs font-mono">
                 <div class="text-slate-500">Налог (5%):</div>
                 <div id="direct-res-tax" class="text-right font-bold text-zone-red">0 ₽</div>
-                
                 <div class="text-slate-500">На руки:</div>
-                <div id="direct-res-revenue" class="text-right font-bold text-zone-blue">0 ₽</div>
-
-                <div class="text-slate-500">Break-Even (0 прибыли):</div>
+                <div id="direct-res-revenue" class="text-right font-bold text-zone-cyan">0 ₽</div>
+                <div class="text-slate-500">Выход в ноль (BE):</div>
                 <div id="direct-res-breakeven" class="text-right font-bold text-slate-400">0 ₽</div>
-
-                <div class="border-t border-zone-border col-span-2 my-1"></div>
-                
-                <div class="text-slate-600 font-bold uppercase">Чистая маржа:</div>
-                <div id="direct-res-profit" class="text-right font-black text-base text-zone-accent">0 ₽</div>
-
-                <div class="text-slate-600 font-bold uppercase">ROI:</div>
-                <div id="direct-res-roi" class="text-right font-extrabold text-zone-orange text-sm">0%</div>
+                <div class="border-t border-slate-200 col-span-2 my-1"></div>
+                <div class="text-zone-darkText font-bold uppercase">Чистая маржа:</div>
+                <div id="direct-res-profit" class="text-right font-extrabold text-sm text-zone-accent">0 ₽</div>
+                <div class="text-zone-darkText font-bold uppercase">Окупаемость:</div>
+                <div id="direct-res-roi" class="text-right font-extrabold text-zone-orange">0%</div>
               </div>
             </div>
 
-            <!-- Обратный -->
+            <!-- Обратный расчет -->
             <div id="panel-reverse-calc" class="space-y-5 hidden">
+              <div class="flex justify-between items-center mb-2 pb-3 border-b border-slate-100">
+                <h3 class="text-xs font-extrabold uppercase font-mono tracking-widest text-zone-darkText">Обратный расчет (по марже)</h3>
+                <span class="text-[9px] font-mono text-slate-400 uppercase bg-slate-50 px-2 py-1 rounded">Target Mode</span>
+              </div>
+
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <div>
-                  <label class="block text-[9px] font-bold uppercase tracking-wider text-slate-500 mb-2">Затраты на покупку:</label>
-                  <div class="flex items-center bg-zone-inputBg border border-zone-border focus-within:border-zone-orange rounded-xl px-3 transition-all">
+                  <label class="block text-[9px] font-bold uppercase tracking-wider text-slate-500 mb-2">Затраты на скупку:</label>
+                  <div class="flex items-center bg-zone-inputBg border border-zone-border focus-within:border-zone-orange rounded-xl px-4 transition-all">
                     <input type="number" id="reverse-buy" oninput="calculateReverse()" placeholder="200000" class="w-full bg-transparent border-none outline-none py-3 font-bold font-mono text-zone-darkText text-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
                     <span class="text-xs font-mono text-slate-400 ml-2">₽</span>
                   </div>
                 </div>
-
                 <div>
-                  <label class="block text-[9px] font-bold uppercase tracking-wider text-slate-500 mb-2">Желаемая прибыль чистыми:</label>
-                  <div class="flex items-center bg-zone-inputBg border border-zone-border focus-within:border-zone-orange rounded-xl px-3 transition-all">
+                  <label class="block text-[9px] font-bold uppercase tracking-wider text-slate-500 mb-2">Желаемая прибыль:</label>
+                  <div class="flex items-center bg-zone-inputBg border border-zone-border focus-within:border-zone-orange rounded-xl px-4 transition-all">
                     <input type="number" id="reverse-target" oninput="calculateReverse()" placeholder="50000" class="w-full bg-transparent border-none outline-none py-3 font-bold font-mono text-zone-darkText text-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
                     <span class="text-xs font-mono text-slate-400 ml-2">₽</span>
                   </div>
                 </div>
               </div>
 
-              <div class="bg-zone-inputBg p-5 rounded-xl border border-zone-border grid grid-cols-2 gap-y-3 gap-x-4 text-xs font-mono">
-                <div class="text-slate-500">Сумма получения (до налога):</div>
-                <div id="reverse-res-hand" class="text-right font-bold text-zone-blue">0 ₽</div>
-
+              <div class="bg-slate-50 p-5 rounded-xl border border-slate-200 grid grid-cols-2 gap-y-3 gap-x-4 text-xs font-mono">
+                <div class="text-slate-500">Сумма на руки:</div>
+                <div id="reverse-res-hand" class="text-right font-bold text-zone-cyan">0 ₽</div>
                 <div class="text-slate-500">Налог биржи:</div>
                 <div id="reverse-res-tax" class="text-right font-bold text-zone-red">0 ₽</div>
-
-                <div class="border-t border-zone-border col-span-2 my-1"></div>
-
-                <div class="text-slate-600 font-bold uppercase text-[10px]">Рекомендуемая цена продажи:</div>
-                <div id="reverse-res-sell" class="text-right font-black text-lg text-zone-orange">0 ₽</div>
+                <div class="border-t border-slate-200 col-span-2 my-1"></div>
+                <div class="text-zone-darkText font-bold uppercase flex items-center">
+                  Выставить на аукцион за:
+                </div>
+                <div id="reverse-res-sell" class="text-right font-extrabold text-base text-zone-orange font-mono">0 ₽</div>
               </div>
             </div>
 
-            <!-- Риск и Кнопка -->
-            <div class="mt-6 pt-5 border-t border-zone-border/60 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <!-- Footer Рисков -->
+            <div class="mt-6 pt-5 border-t border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4">
               <div class="flex items-center gap-3 w-full sm:w-auto">
                 <div class="w-3 h-3 rounded-full bg-slate-300" id="risk-bullet"></div>
                 <div class="text-xs">
-                  <span class="text-slate-400 block text-[8px] uppercase font-bold mb-0.5">Угроза маржинальности</span>
-                  <strong id="risk-text" class="text-slate-600 font-mono">Ожидание ввода...</strong>
+                  <span class="text-slate-400 uppercase tracking-wider block text-[8px] font-bold">Оценка риска</span>
+                  <strong id="risk-text" class="text-slate-600 font-mono">Жду параметры...</strong>
                 </div>
               </div>
-              
-              <button onclick="addCurrentToTracker()" class="w-full sm:w-auto px-6 py-3.5 rounded-xl font-bold text-xs text-white bg-zone-accent hover:bg-zone-accentHover shadow-flat transition-all uppercase tracking-widest flex items-center justify-center gap-2 active:scale-95 shrink-0">
-                + Внести в реестр
+              <button onclick="addCurrentToTracker()" class="w-full sm:w-auto px-6 py-3.5 rounded-xl font-bold text-[10px] text-white bg-zone-accent hover:bg-zone-accentHover transition-all uppercase tracking-widest flex items-center justify-center gap-2 active:scale-95 shadow-md">
+                + Внести сделку
               </button>
             </div>
-
           </div>
         </div>
 
-        <!-- ТАКТИЧЕСКИЙ ЛОГ (5 колонок) -->
-        <div class="lg:col-span-5 bg-white p-6 rounded-2xl border border-zone-border flex flex-col justify-between shadow-flat">
-          <div class="space-y-4">
-            <div class="flex justify-between items-center pb-3 border-b border-zone-border/60">
-              <h3 class="text-xs font-extrabold uppercase font-mono tracking-widest text-slate-700">
-                Тактический Монитор
+        <!-- ТАКТИЧЕСКИЙ ЛОГ (Правая колонка, вместо ориентиров) -->
+        <div class="lg:w-1/3 flex flex-col">
+          <div class="bg-white p-6 rounded-2xl border border-zone-border shadow-flat flex-grow flex flex-col">
+            <div class="flex justify-between items-center mb-4 pb-3 border-b border-slate-100">
+              <h3 class="text-xs font-extrabold uppercase font-mono tracking-widest text-zone-darkText flex items-center gap-2">
+                <svg class="w-4 h-4 text-zone-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                Монитор Событий
               </h3>
-              <span class="text-[8px] bg-zone-greenDim text-zone-accent font-bold px-1.5 py-0.5 rounded font-mono uppercase border border-zone-accent/20">Sync Online</span>
+              <span class="w-2 h-2 rounded-full bg-zone-accent animate-pulse"></span>
+            </div>
+            
+            <div id="tactical-log-container" class="flex-grow space-y-3 overflow-y-auto max-h-[320px] font-mono text-[10px] text-slate-500 pr-2">
+              <div class="border-l-2 border-slate-200 pl-3">
+                <span class="text-[8px] text-slate-400">Система</span>
+                <p class="text-slate-600">Терминал инициализирован. Ожидание действий...</p>
+              </div>
             </div>
 
-            <p class="text-[11px] text-slate-500 font-medium leading-relaxed mb-2">
-              Системный журнал событий приложения в реальном времени.
-            </p>
-
-            <div id="terminal-event-log" class="bg-zone-darkText p-4 rounded-xl border border-[#2A3A4F] h-[280px] overflow-y-auto space-y-2 font-mono text-[10px] shadow-inner text-slate-300">
-              <div class="text-[#A8FF3E]">[СИСТЕМА] Интерфейс загружен. STALZONE Active.</div>
-              <div class="text-[#0A84FF]">[СЕТЬ] Ожидание подключения к Firestore...</div>
+            <div class="mt-4 pt-4 border-t border-slate-100 text-[9px] text-center text-slate-400 uppercase tracking-widest">
+              Сессия защищена шифрованием
             </div>
           </div>
         </div>
 
       </div>
-    </div>
 
-
-    <!-- VIEW 2: REESTR -->
-    <div id="view-reestr" class="view-container flex-col gap-6 p-4 sm:p-6 md:p-8">
-      <section class="bg-white p-6 rounded-2xl border border-zone-border shadow-flat">
-        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 pb-4 border-b border-zone-border/60">
-          <div>
-            <h3 class="text-sm font-extrabold uppercase font-mono tracking-widest text-zone-darkText">Реестр сделок</h3>
-            <p class="text-xs text-slate-500 mt-1">Полная база транзакций, облачная синхронизация.</p>
-          </div>
-          
-          <div class="flex flex-wrap gap-2">
-            <button onclick="exportTrades()" class="bg-zone-inputBg hover:bg-slate-100 text-slate-600 px-4 py-2 rounded-xl text-xs font-bold border border-zone-border transition-all flex items-center font-mono">
-              📥 Экспорт
-            </button>
-            <button onclick="triggerImport()" class="bg-zone-inputBg hover:bg-slate-100 text-slate-600 px-4 py-2 rounded-xl text-xs font-bold border border-zone-border transition-all flex items-center font-mono">
-              📤 Импорт
-            </button>
-            <input type="file" id="import-file" accept=".json" class="hidden" onchange="importTrades(event)">
-          </div>
-        </div>
-
-        <div class="flex flex-wrap gap-1.5 mb-5 text-[10px] font-bold uppercase tracking-wider">
-          <button onclick="setFilter('all')" id="filter-all" class="px-4 py-2 rounded-lg bg-zone-accent text-white font-extrabold transition-all shadow-flat">Все</button>
-          <button onclick="setFilter('bought')" id="filter-bought" class="px-4 py-2 rounded-lg text-slate-500 bg-zone-inputBg hover:bg-slate-200 transition-all">Куплено</button>
-          <button onclick="setFilter('listed')" id="filter-listed" class="px-4 py-2 rounded-lg text-slate-500 bg-zone-inputBg hover:bg-slate-200 transition-all">На ауке</button>
-          <button onclick="setFilter('sold')" id="filter-sold" class="px-4 py-2 rounded-lg text-slate-500 bg-zone-inputBg hover:bg-slate-200 transition-all">Продано</button>
-          <button onclick="setFilter('failed')" id="filter-failed" class="px-4 py-2 rounded-lg text-slate-500 bg-zone-inputBg hover:bg-slate-200 transition-all">Убыток</button>
-        </div>
-
-        <div class="overflow-x-auto w-full rounded-xl border border-zone-border">
-          <table class="w-full text-left border-collapse text-xs min-w-[800px]">
-            <thead>
-              <tr class="bg-zone-inputBg text-slate-500 border-b border-zone-border font-mono uppercase text-[9px] tracking-widest font-extrabold">
-                <th class="p-4">Лот / Описание</th>
-                <th class="p-4">Закупка</th>
-                <th class="p-4">Продажа</th>
-                <th class="p-4">Налог</th>
-                <th class="p-4">Маржа / ROI</th>
-                <th class="p-4">Статус</th>
-                <th class="p-4 text-right">Управление</th>
-              </tr>
-            </thead>
-            <tbody id="trades-tbody" class="divide-y divide-zone-border/50 bg-white">
-              <!-- JS генерирует строки -->
-            </tbody>
-          </table>
-          <div id="no-trades-message" class="p-12 text-center text-slate-400 font-mono text-[10px] uppercase tracking-widest hidden">
-            Реестр пуст. Проведите расчет и внесите сделку.
-          </div>
-        </div>
-      </section>
-    </div>
-
-    <!-- VIEW 3: ANALYTICS -->
-    <div id="view-analytics" class="view-container flex-col gap-6 p-4 sm:p-6 md:p-8">
-      <section class="bg-white p-6 rounded-2xl border border-zone-border shadow-flat">
-        <div class="mb-6 pb-4 border-b border-zone-border/60">
-          <h3 class="text-sm font-extrabold uppercase font-mono tracking-widest text-zone-darkText">Аналитика доходности</h3>
-          <p class="text-xs text-slate-500 mt-1">График чистой прибыли по закрытым сделкам.</p>
-        </div>
-        <div class="h-[400px] w-full relative">
-          <canvas id="profit-analytics-canvas"></canvas>
-        </div>
-      </section>
-    </div>
-
-    <!-- VIEW 4: NOTEPAD -->
-    <div id="view-notepad" class="view-container flex-col gap-6 p-4 sm:p-6 md:p-8">
-      <section class="bg-white p-6 rounded-2xl border border-zone-border shadow-flat flex flex-col gap-4 h-[80vh]">
-        <div class="pb-4 border-b border-zone-border/60 flex justify-between items-center">
-          <div>
-            <h3 class="text-sm font-extrabold uppercase font-mono tracking-widest text-zone-darkText">Заметки барыги</h3>
-            <p class="text-xs text-slate-500 mt-1">Синхронизируются с облаком STALZONE.</p>
-          </div>
-          <button onclick="saveCloudNotepad()" class="bg-zone-accent hover:bg-zone-accentHover text-white px-5 py-2.5 rounded-xl text-xs font-bold font-mono shadow-flat">
-            💾 СОХРАНИТЬ В ОБЛАКО
-          </button>
-        </div>
-        <textarea id="notepad-textarea" placeholder="Черновики списков скупки, мониторинг цен..." 
-                  class="w-full h-full flex-grow bg-zone-inputBg border border-zone-border rounded-xl p-5 text-sm font-mono text-slate-800 outline-none focus:border-zone-accent transition-all resize-none"></textarea>
-      </section>
-    </div>
-
-  </main>
-
-
-  <!-- ================= ADMIN PANEL MODAL ================= -->
-  <div id="admin-panel" class="fixed inset-0 bg-zone-darkText/90 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-    <div class="max-w-4xl w-full bg-white border-2 border-zone-accent rounded-2xl p-8 relative overflow-y-auto max-h-[90vh] shadow-premium">
-      
-      <div class="flex justify-between items-center pb-5 border-b border-zone-border mb-6">
-        <div class="flex items-center gap-4">
-          <div class="p-3 rounded-xl bg-zone-orange/10 text-zone-orange border border-zone-orange/30">⚙️</div>
-          <div>
-            <h2 class="text-base font-extrabold uppercase font-mono tracking-widest text-zone-darkText">Управление SaaS STALZONE</h2>
-            <p class="text-[10px] text-slate-500 font-mono uppercase mt-0.5">Безопасный крипто-шлюз генерации ключей</p>
-          </div>
-        </div>
-        <button onclick="closeAdminPanel()" class="bg-zone-inputBg hover:bg-slate-200 text-slate-600 px-4 py-2.5 rounded-xl transition-all font-mono text-xs font-bold">Закрыть</button>
-      </div>
-
-      <!-- Auth gate -->
-      <div id="admin-auth-gate" class="max-w-sm mx-auto py-12 space-y-4">
-        <p class="text-xs font-bold text-center text-slate-500 font-mono uppercase tracking-widest">Авторизация владельца</p>
-        <input type="password" id="admin-pass-input" placeholder="Мастер-пароль" class="w-full bg-zone-inputBg border border-zone-border rounded-xl px-4 py-3 text-center text-sm font-bold tracking-wider font-mono text-zone-darkText outline-none focus:border-zone-orange">
-        <button onclick="verifyAdminPassword()" class="w-full bg-zone-orange hover:bg-amber-600 text-white font-extrabold text-xs py-3.5 rounded-xl uppercase tracking-widest transition-all">Войти</button>
-      </div>
-
-      <!-- Workspace -->
-      <div id="admin-workspace" class="hidden space-y-8">
-        
-        <!-- Секция Firebase -->
-        <div class="bg-zone-inputBg p-6 rounded-xl border border-zone-border">
-          <div class="flex justify-between items-center mb-3">
-            <h3 class="text-xs font-extrabold uppercase font-mono tracking-wider text-zone-blue">🔗 Firebase Конфигурация</h3>
-            <button onclick="changeAdminPasswordOnline()" class="text-[9px] bg-zone-red text-white px-3 py-1.5 rounded-lg uppercase tracking-wider font-bold shadow-sm hover:bg-red-600">Сменить мастер-пароль</button>
-          </div>
-          <textarea id="firebase-config-textarea" rows="4" class="w-full bg-white border border-zone-border rounded-xl p-4 text-[10px] font-mono text-slate-600 outline-none focus:border-zone-blue transition-all mb-4"></textarea>
-          <button onclick="saveFirebaseConfigFromAdmin()" class="px-6 py-3 rounded-xl bg-zone-blue hover:bg-blue-600 text-white text-xs font-extrabold uppercase tracking-widest font-mono transition-all">Применить и перезапустить</button>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
-          <!-- Генератор -->
-          <div class="md:col-span-4 bg-zone-inputBg p-6 rounded-xl border border-zone-border flex flex-col gap-4">
-            <h3 class="text-xs font-extrabold uppercase font-mono tracking-wider text-zone-orange">🔑 Генератор</h3>
+      <!-- VIEW: JOURNAL -->
+      <div id="view-journal" class="view-container flex-col gap-6">
+        <div class="bg-white p-6 rounded-2xl border border-zone-border shadow-flat">
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 pb-4 border-b border-slate-100">
             <div>
-              <select id="key-days-select" class="w-full bg-white border border-zone-border rounded-xl px-4 py-3 text-xs font-bold font-mono text-slate-800 outline-none">
-                <option value="1">1 День (Тест)</option>
-                <option value="7">7 Дней (Неделя)</option>
-                <option value="30">30 Дней (Месяц)</option>
-              </select>
+              <h3 class="text-sm font-extrabold uppercase font-mono tracking-widest text-zone-darkText">Торговый Реестр</h3>
+              <p class="text-[10px] text-slate-500 mt-1 uppercase tracking-wider">Все данные хранятся в облаке Firestore</p>
             </div>
-            <div class="bg-white p-4 rounded-xl border border-zone-border/50 font-mono text-center">
-              <span class="text-[9px] text-slate-400 uppercase font-bold block mb-2">Новый ключ:</span>
-              <div id="new-key-display" onclick="copyToClipboard(this.innerText)" class="text-sm font-bold text-zone-accent tracking-widest cursor-pointer hover:underline">SC-XXXX...</div>
+            <div class="flex flex-wrap gap-2">
+              <button onclick="exportTrades()" class="bg-zone-inputBg hover:bg-slate-200 text-zone-darkText px-4 py-2.5 rounded-xl text-[10px] font-bold border border-zone-border transition-all flex items-center gap-1.5 font-mono uppercase tracking-widest">
+                Экспорт JSON
+              </button>
+              <button onclick="triggerImport()" class="bg-zone-inputBg hover:bg-slate-200 text-zone-darkText px-4 py-2.5 rounded-xl text-[10px] font-bold border border-zone-border transition-all flex items-center gap-1.5 font-mono uppercase tracking-widest">
+                Импорт JSON
+              </button>
+              <input type="file" id="import-file" accept=".json" class="hidden" onchange="importTrades(event)">
             </div>
-            <button onclick="generateNewLicenseKey()" class="w-full bg-zone-orange hover:bg-amber-600 text-white font-black text-xs py-3.5 rounded-xl uppercase tracking-widest transition-all mt-auto">Создать</button>
           </div>
 
-          <!-- Таблица -->
-          <div class="md:col-span-8 bg-zone-inputBg p-6 rounded-xl border border-zone-border">
-            <div class="flex justify-between items-center mb-4 font-mono">
-              <h3 class="text-xs font-extrabold uppercase tracking-wider text-zone-orange">📡 Активные Лицензии</h3>
-              <span class="text-[10px] text-slate-500 font-bold" id="key-count-display">Всего: 0</span>
-            </div>
-            <div class="overflow-y-auto max-h-[200px] bg-white rounded-xl border border-zone-border">
-              <table class="w-full text-left text-[11px] font-mono">
-                <thead>
-                  <tr class="bg-slate-50 text-slate-400 border-b border-zone-border uppercase text-[9px] tracking-wider">
-                    <th class="p-3">Ключ</th>
-                    <th class="p-3">Срок</th>
-                    <th class="p-3">Статус</th>
-                    <th class="p-3 text-right"></th>
-                  </tr>
-                </thead>
-                <tbody id="keys-tbody" class="divide-y divide-zone-border/30"></tbody>
-              </table>
+          <div class="flex flex-wrap gap-2 mb-5 text-[9px] font-bold uppercase tracking-wider font-mono">
+            <button onclick="setFilter('all')" id="filter-all" class="px-4 py-2 rounded-lg bg-zone-accent text-white border border-zone-accent transition-all">Все</button>
+            <button onclick="setFilter('bought')" id="filter-bought" class="px-4 py-2 rounded-lg text-slate-500 border border-zone-border hover:bg-slate-50 transition-all">Куплено</button>
+            <button onclick="setFilter('listed')" id="filter-listed" class="px-4 py-2 rounded-lg text-slate-500 border border-zone-border hover:bg-slate-50 transition-all">Выставлено</button>
+            <button onclick="setFilter('sold')" id="filter-sold" class="px-4 py-2 rounded-lg text-slate-500 border border-zone-border hover:bg-slate-50 transition-all">Продано</button>
+            <button onclick="setFilter('failed')" id="filter-failed" class="px-4 py-2 rounded-lg text-slate-500 border border-zone-border hover:bg-slate-50 transition-all">Убыток</button>
+          </div>
+
+          <div class="overflow-x-auto w-full rounded-xl border border-zone-border">
+            <table class="w-full text-left border-collapse min-w-[750px] font-mono text-[11px]">
+              <thead>
+                <tr class="bg-[#F0F5F3] text-slate-500 border-b border-zone-border uppercase text-[9px] tracking-widest font-extrabold">
+                  <th class="p-4">Лот</th>
+                  <th class="p-4">Закупка</th>
+                  <th class="p-4">Продажа (Аук)</th>
+                  <th class="p-4">Налог</th>
+                  <th class="p-4">Маржа / ROI</th>
+                  <th class="p-4">Статус</th>
+                  <th class="p-4 text-right">Удалить</th>
+                </tr>
+              </thead>
+              <tbody id="trades-tbody" class="divide-y divide-slate-100 bg-white">
+                <!-- Заполняется JS -->
+              </tbody>
+            </table>
+            <div id="no-trades-message" class="p-12 text-center text-slate-400 font-mono text-[10px] uppercase tracking-widest hidden bg-slate-50">
+              Реестр пуст. Проведите расчет и добавьте сделку.
             </div>
           </div>
         </div>
       </div>
-    </div>
+
+      <!-- VIEW: NOTES -->
+      <div id="view-notes" class="view-container flex-col gap-6">
+        <div class="bg-white p-6 rounded-2xl border border-zone-border shadow-flat flex-grow flex flex-col min-h-[500px]">
+          <div class="flex justify-between items-center mb-4 pb-4 border-b border-slate-100">
+            <h3 class="text-sm font-extrabold uppercase font-mono tracking-widest text-zone-darkText">Блокнот Барыги</h3>
+            <button onclick="saveNotes()" class="bg-zone-accent text-white px-4 py-2 rounded-lg text-[10px] font-bold font-mono uppercase tracking-wider hover:bg-zone-accentHover transition-all">
+              Сохранить
+            </button>
+          </div>
+          <textarea id="notes-textarea" class="w-full flex-grow bg-zone-inputBg border border-zone-border rounded-xl p-4 text-xs font-mono text-zone-darkText outline-none focus:border-zone-accent transition-all resize-none" placeholder="Записывайте сюда наблюдения за рынком, планы скупки и имена конкурентов..."></textarea>
+        </div>
+      </div>
+
+      <!-- VIEW: ADMIN (AUTH & DASHBOARD) -->
+      <div id="view-admin" class="view-container flex-col gap-6">
+        <div class="bg-white p-6 rounded-2xl border border-zone-border shadow-flat">
+          
+          <!-- Ворота админки (Ввод пароля) -->
+          <div id="admin-auth-gate" class="max-w-md mx-auto py-12 text-center space-y-6">
+            <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-2 text-slate-400">
+              <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+            </div>
+            <h2 class="text-sm font-extrabold uppercase font-mono tracking-widest text-zone-darkText">Управление доступом</h2>
+            <div>
+              <input type="password" id="admin-pass-input" placeholder="Мастер-пароль" class="w-full bg-zone-inputBg border border-zone-border rounded-xl px-4 py-3 text-center text-xs font-bold tracking-wider font-mono text-zone-darkText uppercase outline-none focus:border-zone-accent transition-all mb-4">
+              <button onclick="verifyAdminPassword()" class="w-full bg-zone-accent hover:bg-zone-accentHover text-white font-extrabold text-[10px] py-3.5 rounded-xl uppercase tracking-widest transition-all">
+                Войти в систему
+              </button>
+            </div>
+            <p class="text-[9px] text-slate-400 font-mono uppercase tracking-wider">Пароль надежно шифруется по стандарту SHA-256</p>
+          </div>
+
+          <!-- Рабочее пространство Админа -->
+          <div id="admin-workspace" class="hidden space-y-8">
+            <div class="flex justify-between items-center pb-4 border-b border-slate-100">
+              <h3 class="text-sm font-extrabold uppercase font-mono tracking-widest text-zone-accent">Панель Администратора</h3>
+              <button onclick="logoutAdmin()" class="text-[10px] font-bold uppercase font-mono text-slate-400 hover:text-zone-red transition-all">Выйти из панели</button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              
+              <!-- Колонка 1: Управление паролем и Firebase -->
+              <div class="space-y-6">
+                <div class="bg-slate-50 p-5 rounded-xl border border-slate-200">
+                  <h4 class="text-[10px] font-bold uppercase tracking-widest text-zone-darkText mb-4 font-mono">Смена мастер-пароля</h4>
+                  <input type="text" id="new-admin-pass-input" placeholder="Новый пароль" class="w-full bg-white border border-zone-border rounded-xl px-4 py-2.5 text-xs font-mono outline-none mb-3 focus:border-zone-accent">
+                  <button onclick="changeAdminPassword()" class="w-full bg-zone-darkText text-white text-[10px] font-bold uppercase font-mono py-2.5 rounded-xl hover:bg-black transition-all">
+                    Зашифровать и сохранить
+                  </button>
+                </div>
+
+                <div class="bg-slate-50 p-5 rounded-xl border border-slate-200">
+                  <h4 class="text-[10px] font-bold uppercase tracking-widest text-zone-blue mb-4 font-mono">Конфигурация Firebase (SaaS)</h4>
+                  <textarea id="firebase-config-textarea" rows="4" placeholder='{ "apiKey": "...", "projectId": "..." }' class="w-full bg-white border border-zone-border rounded-xl p-3 text-[10px] font-mono text-slate-600 outline-none focus:border-zone-blue transition-all mb-3"></textarea>
+                  <button onclick="saveFirebaseConfigFromAdmin()" class="w-full bg-zone-blue text-white text-[10px] font-bold uppercase font-mono py-2.5 rounded-xl hover:bg-blue-600 transition-all">
+                    Сохранить настройки сети
+                  </button>
+                </div>
+              </div>
+
+              <!-- Колонка 2: Ключи -->
+              <div class="bg-slate-50 p-5 rounded-xl border border-slate-200 flex flex-col">
+                <h4 class="text-[10px] font-bold uppercase tracking-widest text-zone-orange mb-4 font-mono flex justify-between items-center">
+                  <span>Генератор Ключей Лицензии</span>
+                  <span id="key-count-display" class="text-[9px] text-slate-400">Всего: 0</span>
+                </h4>
+                
+                <div class="flex gap-2 mb-4">
+                  <select id="key-days-select" class="bg-white border border-zone-border rounded-xl px-3 py-2 text-xs font-bold font-mono text-zone-darkText outline-none flex-grow">
+                    <option value="1">1 День (Пробный)</option>
+                    <option value="7">7 Дней (Неделя)</option>
+                    <option value="30">30 Дней (Месяц)</option>
+                  </select>
+                  <button onclick="generateNewLicenseKey()" class="bg-zone-orange text-white px-4 py-2 rounded-xl text-[10px] font-bold uppercase font-mono tracking-wider hover:bg-amber-500 transition-all shrink-0">
+                    + Создать
+                  </button>
+                </div>
+
+                <div class="overflow-y-auto flex-grow max-h-[250px] border border-zone-border rounded-xl bg-white">
+                  <table class="w-full text-left text-[10px] font-mono">
+                    <thead class="bg-[#F0F5F3] border-b border-zone-border sticky top-0">
+                      <tr>
+                        <th class="p-2 text-slate-500 uppercase tracking-widest">Ключ</th>
+                        <th class="p-2 text-slate-500 uppercase tracking-widest">Срок</th>
+                        <th class="p-2 text-right"></th>
+                      </tr>
+                    </thead>
+                    <tbody id="keys-tbody" class="divide-y divide-slate-100">
+                      <!-- JS Fill -->
+                    </tbody>
+                  </table>
+                  <div id="no-keys-message" class="p-6 text-center text-slate-400 uppercase tracking-widest text-[9px] hidden">
+                    Нет активных ключей
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </main>
   </div>
 
 
-  <!-- ВНЕШНИЕ СКРИПТЫ (Графики) -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-  <!-- ================= CORE ES6 LOGIC ================= -->
-  <script type="module">
-    // Захват модулей Firebase из Head
-    const { initializeApp, getAuth, signInAnonymously, onAuthStateChanged, getFirestore, doc, setDoc, getDoc, updateDoc, collection, onSnapshot, deleteDoc } = window.FirebaseLib;
-
-    const LOCAL_PREFIX = 'sc_market_pro_';
+  <!-- ================= ОСНОВНОЙ СКРИПТ (ЛОГИКА И UI) ================= -->
+  <script>
+    const LOCAL_PREFIX = 'sz_pro_';
     const appId = 'stalzone-market-pro';
+    
+    // Внутренние переменные состояния
+    let currentCalculator = 'direct';
+    let currentFilter = 'all';
+    let isAdminAuthorized = false;
+    
+    // Вспомогательные аудио функции
+    let audioCtx = null;
+    function initAudio() { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+    window.playSfx = function(type) {
+      try {
+        initAudio();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const now = audioCtx.currentTime;
+        if (type === 'geiger_click') {
+          const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+          o.type = 'triangle'; o.frequency.setValueAtTime(1100 + Math.random() * 900, now);
+          g.gain.setValueAtTime(0.035, now); g.gain.exponentialRampToValueAtTime(0.0001, now + 0.02);
+          o.connect(g); g.connect(audioCtx.destination); o.start(); o.stop(now + 0.02);
+        } else if (type === 'access_granted') {
+          [440,554,659,880].forEach((f,i) => {
+            const o=audioCtx.createOscillator(),g=audioCtx.createGain();
+            o.type='sine'; o.frequency.setValueAtTime(f,now+i*0.08);
+            g.gain.setValueAtTime(0.04,now+i*0.08); g.gain.exponentialRampToValueAtTime(0.001,now+i*0.08+0.3);
+            o.connect(g); g.connect(audioCtx.destination); o.start(now+i*0.08); o.stop(now+i*0.08+0.3);
+          });
+        } else if (type === 'error_siren') {
+          for(let i=0;i<2;i++){
+            const o=audioCtx.createOscillator(),g=audioCtx.createGain();
+            o.type='sawtooth';o.frequency.setValueAtTime(160,now+i*0.15);
+            g.gain.setValueAtTime(0.05,now+i*0.15); g.gain.exponentialRampToValueAtTime(0.001,now+i*0.15+0.15);
+            o.connect(g);g.connect(audioCtx.destination);o.start(now+i*0.15);o.stop(now+i*0.15+0.15);
+          }
+        } else if (type === 'cash_register') {
+          const o1=audioCtx.createOscillator(),o2=audioCtx.createOscillator(),g=audioCtx.createGain();
+          o1.type='sine'; o1.frequency.setValueAtTime(987.77,now); o1.frequency.setValueAtTime(1318.51,now+0.08);
+          o2.type='triangle'; o2.frequency.setValueAtTime(1174.66,now); o2.frequency.setValueAtTime(1567.98,now+0.08);
+          g.gain.setValueAtTime(0.05,now); g.gain.exponentialRampToValueAtTime(0.001,now+0.45);
+          o1.connect(g); o2.connect(g); g.connect(audioCtx.destination);
+          o1.start(); o2.start(); o1.stop(now+0.45); o2.stop(now+0.45);
+        } else if (type === 'trash_delete') {
+          const o=audioCtx.createOscillator(),g=audioCtx.createGain();
+          o.type='sawtooth'; o.frequency.setValueAtTime(80,now);
+          g.gain.setValueAtTime(0.08, now); g.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+          o.connect(g); g.connect(audioCtx.destination); o.start(); o.stop(now + 0.25);
+        }
+      } catch (e) { console.warn("Audio error:", e); }
+    };
+    window.clickGeigerManual = () => window.playSfx('geiger_click');
 
-    // Жестко зашитый дефолтный хеш (SC-ADMIN-99X)
-    const DEFAULT_ADMIN_HASH = "8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918";
+    // Хеширование паролей
+    window.hashString = async function(str) {
+      const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(str));
+      return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+    };
 
+    // Тосты
+    window.showToast = function(message, type='info') {
+      const c = document.getElementById('toast-container');
+      const t = document.createElement('div');
+      const bg = type === 'error' ? 'bg-zone-red text-white' : type === 'success' ? 'bg-zone-accent text-white' : 'bg-zone-darkText text-white';
+      t.className = `flex items-center gap-3 p-4 rounded-xl shadow-premium transition-all duration-300 transform translate-y-2 opacity-0 font-mono text-[10px] uppercase tracking-wider ${bg}`;
+      t.innerHTML = `<div>${message}</div>`;
+      if(type==='error') window.playSfx('error_siren');
+      c.appendChild(t);
+      setTimeout(() => { t.classList.remove('translate-y-2', 'opacity-0'); }, 50);
+      setTimeout(() => {
+        t.classList.add('opacity-0', 'translate-y-1');
+        setTimeout(() => t.remove(), 300);
+      }, 4000);
+    };
+
+    // Модалки
+    let currentModalResolver = null;
+    window.showCustomConfirm = function(title, description) {
+      return new Promise((resolve) => {
+        document.getElementById('modal-title').innerText = title;
+        document.getElementById('modal-desc').innerText = description;
+        document.getElementById('modal-input-container').classList.add('hidden');
+        document.getElementById('custom-modal-root').classList.remove('hidden');
+        currentModalResolver = (confirmed) => {
+          document.getElementById('custom-modal-root').classList.add('hidden');
+          resolve(confirmed);
+        };
+      });
+    };
+    window.showCustomPrompt = function(title, description, defaultValue = '') {
+      return new Promise((resolve) => {
+        document.getElementById('modal-title').innerText = title;
+        document.getElementById('modal-desc').innerText = description;
+        document.getElementById('modal-text-input').value = defaultValue;
+        document.getElementById('modal-input-container').classList.remove('hidden');
+        document.getElementById('custom-modal-root').classList.remove('hidden');
+        currentModalResolver = (confirmed) => {
+          document.getElementById('custom-modal-root').classList.add('hidden');
+          resolve(confirmed ? document.getElementById('modal-text-input').value.trim() : null);
+        };
+      });
+    };
+    document.getElementById('modal-btn-confirm').onclick = () => { if (currentModalResolver) currentModalResolver(true); };
+    document.getElementById('modal-btn-cancel').onclick = () => { if (currentModalResolver) currentModalResolver(false); };
+
+    // Копирование
+    window.copyToClipboard = function(text) {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(() => window.showToast('Скопировано в буфер!', 'success')).catch(()=>fallbackCopy(text));
+      } else fallbackCopy(text);
+    };
+    function fallbackCopy(text) {
+      const ta = document.createElement("textarea"); ta.value = text; ta.style.cssText = "position:fixed;top:0;left:0;opacity:0;";
+      document.body.appendChild(ta); ta.focus(); ta.select();
+      try { document.execCommand('copy') ? window.showToast('Скопировано!', 'success') : window.showToast('Не удалось скопировать.', 'error'); } catch (err) {}
+      document.body.removeChild(ta);
+    }
+
+    // Тактический лог
+    window.logAction = function(message) {
+      const c = document.getElementById('tactical-log-container');
+      const time = new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      const entry = document.createElement('div');
+      entry.className = "border-l-2 border-zone-accent pl-3 animate-[fade-up_0.2s_ease-out]";
+      entry.innerHTML = `<span class="text-[8px] text-slate-400">[${time}] User Action</span><p class="text-slate-600 font-bold">${message}</p>`;
+      c.prepend(entry);
+    };
+
+    // Навигация (Sidebar)
+    window.switchView = function(viewId) {
+      window.playSfx('geiger_click');
+      
+      // Если это просто вызов из гейтвея до активации:
+      if (viewId === 'admin-auth' && document.getElementById('activation-screen').classList.contains('hidden') === false) {
+        document.getElementById('activation-screen').classList.add('hidden');
+        document.getElementById('main-app').classList.remove('hidden');
+        document.getElementById('main-app').style.display = 'flex';
+      }
+
+      const views = ['dashboard', 'journal', 'notes', 'admin'];
+      views.forEach(v => {
+        const el = document.getElementById('view-' + (v==='admin'?'admin':v));
+        if(el) {
+          if (viewId.includes(v)) el.classList.add('active');
+          else el.classList.remove('active');
+        }
+        
+        const nav = document.getElementById('nav-' + v);
+        if(nav) {
+          if (viewId.includes(v)) nav.classList.add('sidebar-active');
+          else nav.classList.remove('sidebar-active');
+        }
+      });
+      
+      if (viewId === 'notes') {
+        document.getElementById('notes-textarea').value = localStorage.getItem(LOCAL_PREFIX + 'notes') || '';
+      }
+      
+      // Логика админки
+      if (viewId === 'admin-auth') {
+        if(isAdminAuthorized) {
+          document.getElementById('admin-auth-gate').classList.add('hidden');
+          document.getElementById('admin-workspace').classList.remove('hidden');
+        } else {
+          document.getElementById('admin-auth-gate').classList.remove('hidden');
+          document.getElementById('admin-workspace').classList.add('hidden');
+        }
+      }
+    };
+
+    window.saveNotes = function() {
+      const text = document.getElementById('notes-textarea').value;
+      localStorage.setItem(LOCAL_PREFIX + 'notes', text);
+      window.playSfx('geiger_click');
+      window.showToast('Заметки сохранены локально', 'success');
+      window.logAction('Обновлен блокнот');
+    };
+
+    window.logoutAdmin = function() {
+      isAdminAuthorized = false;
+      window.switchView('admin-auth');
+      window.showToast('Выход из панели администратора', 'info');
+    };
+
+    // Калькуляторы UI
+    window.switchCalculator = function(mode) {
+      currentCalculator = mode; window.playSfx('geiger_click');
+      const td=document.getElementById('tab-direct'), tr=document.getElementById('tab-reverse');
+      const pd=document.getElementById('panel-direct-calc'), pr=document.getElementById('panel-reverse-calc');
+      if(mode==='direct'){
+        td.className='flex-1 py-3 rounded-lg text-[10px] font-bold uppercase tracking-wider font-mono transition-all bg-zone-inputBg text-zone-accent border border-zone-border'; 
+        tr.className='flex-1 py-3 rounded-lg text-[10px] font-bold uppercase tracking-wider font-mono transition-all text-slate-400 hover:text-slate-600 border border-transparent';
+        pd.classList.remove('hidden'); pr.classList.add('hidden'); window.calculateDirect();
+      } else {
+        tr.className='flex-1 py-3 rounded-lg text-[10px] font-bold uppercase tracking-wider font-mono transition-all bg-zone-inputBg text-zone-orange border border-zone-border'; 
+        td.className='flex-1 py-3 rounded-lg text-[10px] font-bold uppercase tracking-wider font-mono transition-all text-slate-400 hover:text-slate-600 border border-transparent';
+        pr.classList.remove('hidden'); pd.classList.add('hidden'); window.calculateReverse();
+      }
+    };
+
+    function fv(n){ return new Intl.NumberFormat('ru-RU').format(n)+' ₽'; }
+
+    window.calculateDirect = function() {
+      const buy = parseInt(document.getElementById('direct-buy').value)||0;
+      const sell = parseInt(document.getElementById('direct-sell').value)||0;
+      const tax=Math.round(sell*0.05), rev=sell-tax, profit=rev-buy, be=Math.round(buy/0.95);
+      const roi=buy>0?Math.round((profit/buy)*100):0;
+      document.getElementById('direct-res-tax').innerText=fv(tax);
+      document.getElementById('direct-res-revenue').innerText=fv(rev);
+      document.getElementById('direct-res-breakeven').innerText=fv(be);
+      const pe=document.getElementById('direct-res-profit');
+      pe.innerText=(profit>0?'+':'')+fv(profit);
+      pe.className=profit<0?"text-right font-extrabold text-sm text-zone-red":"text-right font-extrabold text-sm text-zone-accent";
+      document.getElementById('direct-res-roi').innerText=roi+'%';
+      window.updateRiskAssessment(profit,roi,buy);
+    };
+
+    window.calculateReverse = function() {
+      const buy=parseInt(document.getElementById('reverse-buy').value)||0;
+      const tgt=parseInt(document.getElementById('reverse-target').value)||0;
+      const sell=Math.round((buy+tgt)/0.95), tax=Math.round(sell*0.05);
+      document.getElementById('reverse-res-hand').innerText=fv(sell-tax);
+      document.getElementById('reverse-res-tax').innerText=fv(tax);
+      document.getElementById('reverse-res-sell').innerText=fv(sell);
+      window.updateRiskAssessment(tgt,buy>0?Math.round((tgt/buy)*100):0,buy);
+    };
+
+    window.quickSetBuy = function(v){
+      document.getElementById('direct-buy').value=v; document.getElementById('reverse-buy').value=v;
+      window.playSfx('geiger_click'); currentCalculator==='direct'?window.calculateDirect():window.calculateReverse();
+    };
+    
+    window.multiplySell = function(m){
+      const b=parseInt(document.getElementById('direct-buy').value)||0;
+      if(b>0){ document.getElementById('direct-sell').value=Math.round(b*m); window.playSfx('geiger_click'); window.calculateDirect(); }
+    };
+
+    window.updateRiskAssessment = function(profit,roi,buy){
+      const b=document.getElementById('risk-bullet'), t=document.getElementById('risk-text');
+      if(buy<=0){b.className='w-3 h-3 rounded-full bg-slate-300';t.innerText='Ожидание параметров...';t.className='text-slate-500 font-mono';return;}
+      if(profit<0){b.className='w-3 h-3 rounded-full bg-zone-red animate-pulse';t.innerText='Убыток!';t.className='text-zone-red font-mono font-bold';}
+      else if(roi<15){b.className='w-3 h-3 rounded-full bg-zone-orange';t.innerText='Высокий риск (ROI<15%)';t.className='text-zone-orange font-mono';}
+      else if(roi<40){b.className='w-3 h-3 rounded-full bg-zone-cyan';t.innerText='Стабильный флип';t.className='text-zone-cyan font-mono';}
+      else{b.className='w-3 h-3 rounded-full bg-zone-accent animate-pulse';t.innerText='Супер маржа (ROI>40%)';t.className='text-zone-accent font-mono font-bold';}
+    };
+
+    // Заглушки функций Firebase (чтобы кнопки не выдавали ошибку до загрузки БД)
+    ['activateLicense', 'logoutLicense', 'addCurrentToTracker', 'deleteTrade', 'updateTradeStatus', 'exportTrades', 'triggerImport', 'importTrades', 'verifyAdminPassword', 'changeAdminPassword', 'saveFirebaseConfigFromAdmin', 'generateNewLicenseKey', 'deleteLicenseKey'].forEach(fn => {
+      if(!window[fn]) window[fn] = () => window.showToast('Загрузка облачных модулей...', 'info');
+    });
+  </script>
+
+  <!-- ================= FIREBASE СИСТЕМА (ОНЛАЙН) ================= -->
+  <script type="module">
+    // Безопасный дефолтный конфиг
     const HARDCODED_FIREBASE_CONFIG = {
       apiKey: "AIzaSyASoAF_R2hbWrcuMQbl8qGJv5E5BOMb2fE",
       authDomain: "sc-market-72b69.firebaseapp.com",
       projectId: "sc-market-72b69",
       storageBucket: "sc-market-72b69.firebasestorage.app",
       messagingSenderId: "939729263914",
-      appId: "1:939729263914:web:269fcfdf8e265264705253",
-      measurementId: "G-Q48E34WBYZ"
+      appId: "1:939729263914:web:269fcfdf8e265264705253"
     };
 
-    let auth = null, db = null;
-    let currentCalculator = 'direct', currentFilter = 'all';
-    let trades = [], licenseKeys = [];
-    let userSubscription = null, activeKeySession = null, licenseTimerInterval = null, isAdminAuthorized = false;
-    let analyticsChart = null;
-
-    // ГЛОБАЛЬНЫЙ ЭКСПОРТ ДЛЯ HTML (Обязательно для type="module")
-    window.switchView = switchView;
-    window.switchCalculator = switchCalculator;
-    window.calculateDirect = calculateDirect;
-    window.calculateReverse = calculateReverse;
-    window.quickSetBuy = quickSetBuy;
-    window.multiplySell = multiplySell;
-    window.activateLicense = activateLicense;
-    window.logoutLicense = logoutLicense;
-    window.addCurrentToTracker = addCurrentToTracker;
-    window.deleteTrade = deleteTrade;
-    window.updateTradeStatus = updateTradeStatus;
-    window.setFilter = setFilter;
-    window.exportTrades = exportTrades;
-    window.triggerImport = triggerImport;
-    window.importTrades = importTrades;
-    window.toggleAdminPanelDirect = toggleAdminPanelDirect;
-    window.closeAdminPanel = closeAdminPanel;
-    window.verifyAdminPassword = verifyAdminPassword;
-    window.changeAdminPasswordOnline = changeAdminPasswordOnline;
-    window.generateNewLicenseKey = generateNewLicenseKey;
-    window.deleteLicenseKey = deleteLicenseKey;
-    window.saveFirebaseConfigFromAdmin = saveFirebaseConfigFromAdmin;
-    window.saveCloudNotepad = saveCloudNotepad;
-    window.copyToClipboard = copyToClipboard;
-
-    // ХЕШИРОВАНИЕ SHA-256 (Для пароля админа)
-    async function sha256(string) {
-      const utf8 = new TextEncoder().encode(string);
-      const hashBuffer = await crypto.subtle.digest('SHA-256', utf8);
-      const hashArray = Array.from(new Uint8Array(hashBuffer));
-      return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    let auth=null, db=null, trades=[], licenseKeys=[], userSubscription=null, activeKeySession=null, licenseTimerInterval=null;
+    
+    async function withTimeout(promise, ms=8000) {
+      let h; const tp=new Promise((_,r)=>{h=setTimeout(()=>r(new Error('Timeout')),ms)});
+      try { return await Promise.race([promise,tp]); } finally { clearTimeout(h); }
     }
 
-    // ТАЙМАУТ ДЛЯ FIREBASE
-    async function withTimeout(promise, ms = 8000, msg = 'Timeout') {
-      let h; const tp = new Promise((_, r) => { h = setTimeout(() => r(new Error(msg)), ms); });
-      try { return await Promise.race([promise, tp]); } finally { clearTimeout(h); }
-    }
-
-    // TOASTS
-    function showToast(message, type = "info") {
-      const c = document.getElementById('toast-container');
-      const t = document.createElement('div');
-      const cols = { success: '#114B31', error: '#FF3B30', info: '#0A84FF' };
-      const icons = { success: '✓', error: '⚠', info: '📡' };
-      t.className = `flex items-center gap-3 p-4 rounded-xl border border-zone-border bg-white text-zone-darkText shadow-premium transition-all duration-300 transform translate-y-2 opacity-0 font-mono text-xs z-50`;
-      t.innerHTML = `<strong style="color:${cols[type]}">${icons[type]}</strong><span class="font-bold">${message}</span>`;
-      c.appendChild(t);
-      setTimeout(() => t.classList.remove('translate-y-2', 'opacity-0'), 50);
-      setTimeout(() => { t.classList.add('opacity-0'); setTimeout(() => t.remove(), 300); }, 3500);
-      logEvent(message, type);
-    }
-
-    // ТАКТИЧЕСКИЙ ЛОГ
-    function logEvent(msg, type='info') {
-      const log = document.getElementById('terminal-event-log');
-      if(!log) return;
-      const el = document.createElement('div');
-      const time = new Date().toLocaleTimeString('ru-RU');
-      const cols = { success:'#A8FF3E', error:'#FF3B30', info:'#0A84FF', warning:'#FF9500' };
-      el.style.color = cols[type] || '#E2ECE9';
-      el.innerText = `[${time}] ${msg}`;
-      log.appendChild(el);
-      log.scrollTop = log.scrollHeight;
-    }
-
-    // БЕЗОПАСНЫЙ БУФЕР ОБМЕНА
-    function copyToClipboard(text) {
-      const ta = document.createElement("textarea"); ta.value = text;
-      ta.style.cssText = "position:fixed;top:0;left:0;opacity:0;";
-      document.body.appendChild(ta); ta.focus(); ta.select();
-      try { document.execCommand('copy') && showToast('Ключ скопирован!', 'success'); } catch(e){}
-      ta.remove();
-    }
-
-    // ИНИЦИАЛИЗАЦИЯ
+    // Инициализация
     async function initSystem() {
+      if(!window.FirebaseLib) return;
+      const { initializeApp, getAuth, signInAnonymously, onAuthStateChanged, getFirestore, doc, getDoc } = window.FirebaseLib;
+      
       let cfg = HARDCODED_FIREBASE_CONFIG;
-      const sc = localStorage.getItem(LOCAL_PREFIX + 'firebase_config_object');
-      if(sc){ try{ cfg = JSON.parse(sc); }catch(e){} }
-
-      const dot = document.getElementById('connection-status-dot');
-      const txt = document.getElementById('connection-status-text');
+      const sc = localStorage.getItem(LOCAL_PREFIX+'firebase_config_object');
+      if(sc){try{cfg=JSON.parse(sc);}catch(e){}}
 
       try {
         const app = initializeApp(cfg);
         auth = getAuth(app); db = getFirestore(app);
+        document.getElementById('auth-error-banner').classList.add('hidden');
 
-        await withTimeout(signInAnonymously(auth), 6000, "Ошибка авторизации");
-        
+        try {
+          await withTimeout(signInAnonymously(auth), 6000);
+        } catch(ae) {
+          if(ae.code==='auth/configuration-not-found'||ae.message?.includes('configuration-not-found')) {
+            document.getElementById('auth-error-banner').classList.remove('hidden');
+            window.showToast("В Firebase отключен Anonymous Auth!", "error");
+            return;
+          }
+        }
+
         onAuthStateChanged(auth, async user => {
-          if (user) {
-            dot.style.backgroundColor = "#114B31"; txt.innerText = "ОНЛАЙН"; txt.style.color = "#114B31";
-            logEvent("Соединение с облаком STALZONE установлено.", "success");
-            await syncAndValidateKeySession();
+          if(user) {
+            document.getElementById('connection-status-dot').className = "w-2 h-2 rounded-full bg-zone-accent animate-pulse shrink-0";
+            document.getElementById('connection-status-text').innerText = "ОНЛАЙН";
+            await syncKeySession();
           } else {
-            showActivationGateway();
+            showActivation();
           }
         });
       } catch(err) {
-        document.getElementById('auth-error-banner').classList.remove('hidden');
-        logEvent("Критическая ошибка сети: " + err.message, "error");
+        document.getElementById('network-error-screen').classList.remove('hidden');
       }
     }
 
-    async function syncAndValidateKeySession() {
-      const k = localStorage.getItem(LOCAL_PREFIX + 'saved_license_key');
-      if(!k) { showActivationGateway(); return; }
-
+    async function syncKeySession() {
+      const k = localStorage.getItem(LOCAL_PREFIX+'saved_license_key');
+      if(!k){showActivation();return;}
+      const { doc, getDoc } = window.FirebaseLib;
       try {
-        const snap = await withTimeout(getDoc(doc(db, 'artifacts', appId, 'public', 'data', 'license_keys', k)), 8000);
-        if(snap.exists()){
+        const snap = await withTimeout(getDoc(doc(db,'artifacts',appId,'public','data','license_keys',k)), 8000);
+        if(snap.exists()) {
           const d = snap.data();
-          if((d.status === 'used' || d.status === 'active') && d.expiresAt > Date.now()){
-            activeKeySession = k; userSubscription = d;
-            unlockTerminal(); return;
+          if((d.status==='used'||d.status==='active')&&d.expiresAt>Date.now()){
+            activeKeySession=k; userSubscription=d; openTerminal(); return;
           }
         }
-        localStorage.removeItem(LOCAL_PREFIX + 'saved_license_key');
-        showActivationGateway(); showToast("Лицензия истекла!", "error");
-      } catch(e){ showActivationGateway(); }
+        localStorage.removeItem(LOCAL_PREFIX+'saved_license_key');
+        showActivation(); window.showToast('Сессия истекла','error');
+      } catch(e){ showActivation(); }
     }
 
-    function unlockTerminal() {
+    function openTerminal() {
       document.getElementById('activation-screen').classList.add('hidden');
-      document.getElementById('main-sidebar').classList.remove('hidden');
-      document.getElementById('main-terminal').classList.remove('hidden');
-      document.getElementById('main-terminal').style.display = 'flex';
-      
-      loadTrades(); loadCloudNotepad();
-      startLicenseCountdownTicker(userSubscription.expiresAt);
-      logEvent(`Авторизация успешна. Ключ: ${activeKeySession.slice(0,8)}...`, "success");
+      const term = document.getElementById('main-app');
+      term.classList.remove('hidden'); term.style.display = 'flex';
+      window.switchView('dashboard');
+      loadTrades();
+      startTimer(userSubscription.expiresAt);
+      window.logAction('Успешный вход по лицензии');
     }
 
-    function showActivationGateway() {
+    function showActivation() {
       document.getElementById('activation-screen').classList.remove('hidden');
-      document.getElementById('main-sidebar').classList.add('hidden');
-      document.getElementById('main-terminal').classList.add('hidden');
+      document.getElementById('main-app').classList.add('hidden');
+      if (licenseTimerInterval) clearInterval(licenseTimerInterval);
     }
 
-    function startLicenseCountdownTicker(exp) {
+    function startTimer(exp) {
       if(licenseTimerInterval) clearInterval(licenseTimerInterval);
       const el = document.getElementById('license-countdown');
       const tick = () => {
         const d = exp - Date.now();
-        if(d <= 0){ clearInterval(licenseTimerInterval); localStorage.removeItem(LOCAL_PREFIX+'saved_license_key'); showActivationGateway(); return; }
-        const days = Math.floor(d/86400000), h = Math.floor((d%86400000)/3600000), m = Math.floor((d%3600000)/60000), s = Math.floor((d%60000)/1000);
-        el.innerText = (days>0?days+'д ':'') + `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+        if(d<=0){
+          clearInterval(licenseTimerInterval); el.innerText='ИСТЕКЛА';
+          localStorage.removeItem(LOCAL_PREFIX+'saved_license_key'); showActivation(); return;
+        }
+        const days=Math.floor(d/86400000), h=Math.floor((d%86400000)/3600000), m=Math.floor((d%3600000)/60000), s=Math.floor((d%60000)/1000);
+        el.innerText=(days>0?days+'д ':'')+`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+        el.className = d<43200000 ? "text-[10px] md:text-xs font-mono text-zone-red animate-pulse block" : "text-[10px] md:text-xs font-mono text-zone-accent block";
       };
-      tick(); licenseTimerInterval = setInterval(tick, 1000);
+      tick(); licenseTimerInterval=setInterval(tick,1000);
     }
 
-    async function activateLicense() {
+    // Регистрация реальных функций в window
+    window.activateLicense = async function() {
       const k = document.getElementById('license-key-input').value.trim();
-      if(!k) return showToast("Введите ключ!", "error");
-      if(!db) return showToast("Нет сети!", "error");
-
+      if(!k||!db) return window.showToast('Введите ключ!','error');
+      const { doc, getDoc, updateDoc } = window.FirebaseLib;
+      window.showToast('Проверка ключа...','info');
       try {
-        const ref = doc(db, 'artifacts', appId, 'public', 'data', 'license_keys', k);
+        const ref = doc(db,'artifacts',appId,'public','data','license_keys',k);
         const snap = await withTimeout(getDoc(ref));
         if(snap.exists()){
           const d = snap.data();
-          if(d.status === 'active') {
-            const exp = Date.now() + (parseInt(d.days||1) * 86400000);
-            const upd = { status: 'used', activatedAt: Date.now(), expiresAt: exp };
-            await updateDoc(ref, upd);
-            localStorage.setItem(LOCAL_PREFIX+'saved_license_key', k);
-            activeKeySession = k; userSubscription = {...d, ...upd};
-            unlockTerminal(); showToast("Лицензия активирована!", "success");
-          } else if(d.status === 'used' && d.expiresAt > Date.now()) {
-            localStorage.setItem(LOCAL_PREFIX+'saved_license_key', k);
-            activeKeySession = k; userSubscription = d;
-            unlockTerminal(); showToast("Синхронизация профиля успешна!", "success");
-          } else showToast("Срок ключа истёк!", "error");
-        } else showToast("Ключ не найден!", "error");
-      } catch(e) { showToast("Ошибка: "+e.message, "error"); }
-    }
+          if(d.status==='active'){
+            const exp = Date.now()+(parseInt(d.days||1)*86400000);
+            const upd = {status:'used',activatedAt:Date.now(),expiresAt:exp};
+            await updateDoc(ref,upd);
+            localStorage.setItem(LOCAL_PREFIX+'saved_license_key',k);
+            activeKeySession=k; userSubscription={...d,...upd};
+            openTerminal(); window.showToast('Лицензия активирована!','success'); return;
+          } else if(d.status==='used'&&d.expiresAt>Date.now()){
+            localStorage.setItem(LOCAL_PREFIX+'saved_license_key',k);
+            activeKeySession=k; userSubscription=d;
+            openTerminal(); window.showToast('Успешная синхронизация!','success'); return;
+          } else window.showToast('Ключ истек!','error');
+        } else window.showToast('Ключ не найден.','error');
+      } catch(e){ window.showToast('Ошибка сети','error'); }
+    };
 
-    function logoutLicense() {
+    window.logoutLicense = function() {
       localStorage.removeItem(LOCAL_PREFIX+'saved_license_key');
-      activeKeySession = null; userSubscription = null;
-      document.getElementById('license-key-input').value = '';
-      showActivationGateway();
-    }
+      activeKeySession=null; userSubscription=null;
+      document.getElementById('license-key-input').value='';
+      showActivation(); window.showToast('Выход выполнен','info');
+    };
 
-
-    // ================= НАВИГАЦИЯ (SIDEBAR) =================
-    function switchView(viewId) {
-      ['dashboard', 'reestr', 'analytics', 'notepad'].forEach(id => {
-        document.getElementById('view-'+id)?.classList.remove('active');
-        document.getElementById('nav-'+id)?.classList.remove('sidebar-active');
-        document.getElementById('nav-'+id)?.classList.add('text-slate-500');
-      });
-      document.getElementById('view-'+viewId)?.classList.add('active');
-      document.getElementById('nav-'+viewId)?.classList.add('sidebar-active');
-      document.getElementById('nav-'+viewId)?.classList.remove('text-slate-500');
-      if(viewId === 'analytics') updateAnalyticsChart();
-    }
-
-
-    // ================= КАЛЬКУЛЯТОРЫ =================
-    function switchCalculator(mode) {
-      currentCalculator = mode;
-      const dBtn=document.getElementById('btn-tab-direct'), rBtn=document.getElementById('btn-tab-reverse');
-      const pd=document.getElementById('panel-direct-calc'), pr=document.getElementById('panel-reverse-calc');
-      if(mode === 'direct'){
-        dBtn.className="flex-1 py-2.5 rounded-lg text-[11px] font-bold uppercase tracking-wider font-mono transition-all bg-zone-accent text-white shadow-flat";
-        rBtn.className="flex-1 py-2.5 rounded-lg text-[11px] font-bold uppercase tracking-wider font-mono transition-all text-slate-500 hover:text-zone-darkText";
-        pd.classList.remove('hidden'); pr.classList.add('hidden'); calculateDirect();
-      } else {
-        rBtn.className="flex-1 py-2.5 rounded-lg text-[11px] font-bold uppercase tracking-wider font-mono transition-all bg-zone-orange text-white shadow-flat";
-        dBtn.className="flex-1 py-2.5 rounded-lg text-[11px] font-bold uppercase tracking-wider font-mono transition-all text-slate-500 hover:text-zone-darkText";
-        pr.classList.remove('hidden'); pd.classList.add('hidden'); calculateReverse();
-      }
-    }
-
-    function fv(n) { return new Intl.NumberFormat('ru-RU').format(n) + ' ₽'; }
-
-    function calculateDirect() {
-      const buy = parseInt(document.getElementById('direct-buy').value)||0, sell = parseInt(document.getElementById('direct-sell').value)||0;
-      const tax = Math.round(sell*0.05), profit = (sell-tax)-buy, roi = buy>0?Math.round((profit/buy)*100):0;
-      document.getElementById('direct-res-tax').innerText = fv(tax);
-      document.getElementById('direct-res-revenue').innerText = fv(sell-tax);
-      document.getElementById('direct-res-breakeven').innerText = fv(Math.round(buy/0.95));
-      const pEl = document.getElementById('direct-res-profit');
-      pEl.innerText = (profit>0?'+':'')+fv(profit);
-      pEl.style.color = profit<0?'#FF3B30':'#114B31';
-      document.getElementById('direct-res-roi').innerText = roi+'%';
-      updateRisk(profit,roi,buy);
-    }
-
-    function calculateReverse() {
-      const buy = parseInt(document.getElementById('reverse-buy').value)||0, tgt = parseInt(document.getElementById('reverse-target').value)||0;
-      const sell = Math.round((buy+tgt)/0.95), tax = Math.round(sell*0.05);
-      document.getElementById('reverse-res-hand').innerText = fv(sell-tax);
-      document.getElementById('reverse-res-tax').innerText = fv(tax);
-      document.getElementById('reverse-res-sell').innerText = fv(sell);
-      updateRisk(tgt, buy>0?Math.round((tgt/buy)*100):0, buy);
-    }
-
-    function quickSetBuy(v) { document.getElementById('direct-buy').value=v; document.getElementById('reverse-buy').value=v; currentCalculator==='direct'?calculateDirect():calculateReverse(); }
-    function multiplySell(m) { const b=parseInt(document.getElementById('direct-buy').value)||0; if(b>0){ document.getElementById('direct-sell').value=Math.round(b*m); calculateDirect();} }
-
-    function updateRisk(profit,roi,buy) {
-      const b=document.getElementById('risk-bullet'), t=document.getElementById('risk-text');
-      if(buy<=0){ b.style.backgroundColor='#CAD6D2'; t.innerText='Ожидание...'; t.style.color='#5A6D82'; }
-      else if(profit<0){ b.style.backgroundColor='#FF3B30'; t.innerText='Убыток!'; t.style.color='#FF3B30'; }
-      else if(roi<15){ b.style.backgroundColor='#FF9500'; t.innerText='Высокий риск'; t.style.color='#FF9500'; }
-      else if(roi<40){ b.style.backgroundColor='#0A84FF'; t.innerText='Стабильный флип'; t.style.color='#0A84FF'; }
-      else { b.style.backgroundColor='#114B31'; t.innerText='Безопасно (ROI>40%)'; t.style.color='#114B31'; }
-    }
-
-
-    // ================= РЕЕСТР И СИНХРОНИЗАЦИЯ =================
+    // Trades
     async function loadTrades() {
       if(!db||!activeKeySession) return;
-      onSnapshot(collection(db,'artifacts',appId,'users',activeKeySession,'trades'), snap => {
-        trades=[]; snap.forEach(d=>trades.push({id:d.id,...d.data()})); renderAll();
+      const { collection, onSnapshot } = window.FirebaseLib;
+      onSnapshot(collection(db,'artifacts',appId,'users',activeKeySession,'trades'),snap=>{
+        trades=[]; snap.forEach(d=>trades.push({id:d.id,...d.data()})); 
+        trades.sort((a,b)=>b.createdAtStr - a.createdAtStr); // Sort by real timestamp if we add one later
+        _renderTrades();
       });
     }
 
-    async function saveTrades(t) {
-      if(!db||!activeKeySession) return;
-      await setDoc(doc(db,'artifacts',appId,'users',activeKeySession,'trades',t.id), t);
+    async function _saveTrade(t) {
+      const { doc, setDoc } = window.FirebaseLib;
+      await withTimeout(setDoc(doc(db,'artifacts',appId,'users',activeKeySession,'trades',t.id),t));
     }
 
-    async function addCurrentToTracker() {
-      let b=0,s=0;
-      if(currentCalculator==='direct'){ b=parseInt(document.getElementById('direct-buy').value)||0; s=parseInt(document.getElementById('direct-sell').value)||0; }
-      else{ b=parseInt(document.getElementById('reverse-buy').value)||0; s=parseInt(document.getElementById('reverse-res-sell').innerText.replace(/\s|₽/g,''))||0; }
-      if(b<=0||s<=0) return showToast("Укажите цены!","error");
-      
-      const name = prompt("Название предмета:", "Редкий лот");
-      if(!name) return;
-      const tax=Math.round(s*0.05), profit=(s-tax)-b, roi=b>0?Math.round((profit/b)*100):0;
-      const tr = { id:'t_'+Date.now(), name, buyPrice:b, sellPrice:s, tax, profit, roi, status:'listed', createdAt:new Date().toLocaleDateString('ru-RU') };
-      trades.unshift(tr); await saveTrades(tr); renderAll(); showToast("Сделка добавлена!","success"); logEvent(`Добавлен лот: ${name}`, "success");
-    }
-
-    function renderAll() {
-      const active=trades.filter(t=>t.status==='bought'||t.status==='listed'), listed=trades.filter(t=>t.status==='listed'), sold=trades.filter(t=>t.status==='sold');
-      document.getElementById('dashboard-total-invested').innerText=fv(active.reduce((s,t)=>s+t.buyPrice,0));
-      document.getElementById('dashboard-expected-revenue').innerText=fv(listed.reduce((s,t)=>s+(t.sellPrice-t.tax),0));
-      const tp=sold.reduce((s,t)=>s+t.profit,0), tb=sold.reduce((s,t)=>s+t.buyPrice,0);
-      document.getElementById('dashboard-total-profit').innerText=fv(tp);
-      document.getElementById('dashboard-avg-roi').innerText=(tb>0?Math.round((tp/tb)*100):0)+'%';
-      document.getElementById('dashboard-success-count').innerText=`Сделок завершено: ${sold.length}`;
-
-      const tbod=document.getElementById('trades-tbody'), empty=document.getElementById('no-trades-message');
-      tbod.innerHTML='';
-      const filt=trades.filter(t=>currentFilter==='all'||t.status===currentFilter);
-      if(!filt.length) empty.classList.remove('hidden'); else empty.classList.add('hidden');
-      filt.forEach(t=>{
-        const tr=document.createElement('tr');
-        tr.className="hover:bg-slate-50 transition-all font-mono";
-        const badge = t.status==='bought'?`<span class="text-zone-blue font-bold">Куплено</span>`:t.status==='listed'?`<span class="text-zone-orange font-bold">На ауке</span>`:t.status==='sold'?`<span class="text-zone-accent font-bold">Продано ✓</span>`:`<span class="text-zone-red font-bold">Убыток</span>`;
-        tr.innerHTML=`
-          <td class="p-4"><p class="font-bold text-slate-800 text-xs font-sans">${t.name}</p><p class="text-[9px] text-slate-400 mt-1">${t.createdAt}</p></td>
-          <td class="p-4 font-bold text-slate-600">${fv(t.buyPrice)}</td>
-          <td class="p-4 font-bold text-slate-600">${fv(t.sellPrice)}</td>
-          <td class="p-4 text-zone-red">${fv(t.tax)}</td>
-          <td class="p-4"><p class="font-extrabold ${t.profit<0?'text-zone-red':'text-zone-accent'}">${t.profit>0?'+':''}${fv(t.profit)}</p><p class="text-[9px] text-slate-400 mt-1">ROI: <span class="text-zone-orange">${t.roi}%</span></p></td>
-          <td class="p-4 flex items-center gap-2 mt-2">${badge}
-            <select class="bg-zone-inputBg text-slate-600 text-[10px] rounded border border-zone-border p-1 outline-none ml-2" onchange="updateTradeStatus('${t.id}',this.value)">
-              <option value="bought" ${t.status==='bought'?'selected':''}>Куплено</option><option value="listed" ${t.status==='listed'?'selected':''}>На ауке</option><option value="sold" ${t.status==='sold'?'selected':''}>Продано</option><option value="failed" ${t.status==='failed'?'selected':''}>Убыток</option>
-            </select>
-          </td>
-          <td class="p-4 text-right"><button onclick="deleteTrade('${t.id}')" class="text-slate-400 hover:text-zone-red">🗑</button></td>
-        `;
-        tbod.appendChild(tr);
-      });
-      if(document.getElementById('view-analytics').classList.contains('active')) updateAnalyticsChart();
-    }
-
-    async function updateTradeStatus(id, st){
-      const i=trades.findIndex(t=>t.id===id);
-      if(i!==-1){ trades[i].status=st; await saveTrades(trades[i]); renderAll(); logEvent(`Статус лота обновлен: ${st}`); }
-    }
-    async function deleteTrade(id){
-      if(confirm('Удалить сделку?')){
-        await deleteDoc(doc(db,'artifacts',appId,'users',activeKeySession,'trades',id));
-        trades=trades.filter(t=>t.id!==id); renderAll(); showToast('Удалено');
+    window.addCurrentToTracker = async function() {
+      let buy=parseInt(document.getElementById('direct-buy').value)||0, sell=parseInt(document.getElementById('direct-sell').value)||0;
+      if(document.getElementById('panel-reverse-calc').classList.contains('hidden')===false) {
+        buy=parseInt(document.getElementById('reverse-buy').value)||0;
+        sell=parseInt(document.getElementById('reverse-res-sell').innerText.replace(/\s|₽/g,''))||0;
       }
-    }
-    function setFilter(f){
-      currentFilter=f;
-      ['all','bought','listed','sold','failed'].forEach(n=>document.getElementById('filter-'+n).className=`px-4 py-2 rounded-lg transition-all ${n===f?'bg-zone-accent text-white font-extrabold shadow-flat':'text-slate-500 bg-zone-inputBg hover:bg-slate-200'}`);
-      renderTable();
-    }
+      if(buy<=0||sell<=0) return window.showToast('Заполните цены!','error');
+      const name = await window.showCustomPrompt('Новый лот','Укажите название предмета:','Артефакт');
+      if(!name) return;
+      
+      const tax=Math.round(sell*0.05), profit=(sell-tax)-buy, roi=buy>0?Math.round((profit/buy)*100):0;
+      const t = { id:'t_'+Date.now(), name, buyPrice:buy, sellPrice:sell, tax, profit, roi, status:'listed', createdAt:new Date().toLocaleDateString('ru-RU'), createdAtStr:Date.now() };
+      
+      await _saveTrade(t); window.playSfx('cash_register'); window.logAction(`Сделка "${name}" добавлена`);
+    };
 
-    function exportTrades() {
-      const a=document.createElement('a'); a.href='data:text/json;charset=utf-8,'+encodeURIComponent(JSON.stringify(trades,null,2)); a.download=`stalzone_${Date.now()}.json`; a.click();
-    }
-    function triggerImport() { document.getElementById('import-file').click(); }
-    function importTrades(e) {
-      const r=new FileReader(); r.onload=async ev=>{ try{ const p=JSON.parse(ev.target.result); if(Array.isArray(p)){ trades=p; for(let t of p) await saveTrades(t); renderAll(); showToast('Импорт успешен','success'); } }catch(er){} }; r.readAsText(e.target.files[0]);
-    }
+    window.updateTradeStatus = async function(id, st) {
+      const i=trades.findIndex(x=>x.id===id); if(i===-1)return;
+      trades[i].status=st;
+      if(st==='sold') { window.playSfx('cash_register'); window.logAction(`Лот "${trades[i].name}" ПРОДАН`); }
+      else window.playSfx('geiger_click');
+      await _saveTrade(trades[i]);
+    };
 
+    window.deleteTrade = async function(id) {
+      if(!await window.showCustomConfirm('Удаление','Убрать сделку?')) return;
+      const { doc, deleteDoc } = window.FirebaseLib;
+      await deleteDoc(doc(db,'artifacts',appId,'users',activeKeySession,'trades',id));
+      window.playSfx('trash_delete'); window.logAction('Сделка аннулирована');
+    };
 
-    // ================= БЛОКНОТ И ГРАФИКИ =================
-    async function loadCloudNotepad() {
-      try {
-        const snap = await getDoc(doc(db,'artifacts',appId,'users',activeKeySession,'notepad','main'));
-        if(snap.exists()) document.getElementById('notepad-textarea').value = snap.data().text||'';
-      } catch(e){}
-    }
-    async function saveCloudNotepad() {
-      await setDoc(doc(db,'artifacts',appId,'users',activeKeySession,'notepad','main'), {text:document.getElementById('notepad-textarea').value, ts:Date.now()});
-      showToast('Заметки сохранены в облаке!','success'); logEvent('Блокнот синхронизирован.','success');
-    }
+    window.setFilter = function(f) {
+      currentFilter=f; window.playSfx('geiger_click');
+      ['all','bought','listed','sold','failed'].forEach(n=>{
+        const el=document.getElementById('filter-'+n);
+        if(n===f) el.className="px-4 py-2 rounded-lg bg-zone-accent text-white border border-zone-accent transition-all";
+        else el.className="px-4 py-2 rounded-lg text-slate-500 border border-zone-border hover:bg-slate-50 transition-all";
+      });
+      _renderTrades();
+    };
 
-    function updateAnalyticsChart() {
-      const ctx = document.getElementById('profit-analytics-canvas');
-      if(!ctx) return;
-      const sold = [...trades].filter(t=>t.status==='sold').reverse();
-      const labels = sold.map(t=>t.name.slice(0,10)+ (t.name.length>10?'..':''));
-      let sum=0; const data = sold.map(t=>{sum+=t.profit; return sum;});
-      if(analyticsChart) analyticsChart.destroy();
-      analyticsChart = new Chart(ctx.getContext('2d'), {
-        type: 'line',
-        data: { labels:labels.length?labels:['Нет сделок'], datasets:[{ label:'Накопительная прибыль (₽)', data:data.length?data:[0], borderColor:'#114B31', backgroundColor:'rgba(17,75,49,0.1)', borderWidth:3, fill:true, tension:0.3 }] },
-        options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{labels:{font:{family:'Inter'}}}}, scales:{x:{grid:{display:false}},y:{ticks:{font:{family:'Fira Code'}}}} }
+    function _renderTrades() {
+      // Stats
+      const act=trades.filter(t=>t.status==='bought'||t.status==='listed'), lst=trades.filter(t=>t.status==='listed'), sld=trades.filter(t=>t.status==='sold');
+      document.getElementById('stat-total-invested').innerText = new Intl.NumberFormat('ru-RU').format(act.reduce((s,t)=>s+t.buyPrice,0))+' ₽';
+      document.getElementById('stat-expected-revenue').innerText = new Intl.NumberFormat('ru-RU').format(lst.reduce((s,t)=>s+(t.sellPrice-t.tax),0))+' ₽';
+      const tp=sld.reduce((s,t)=>s+t.profit,0), tb=sld.reduce((s,t)=>s+t.buyPrice,0);
+      document.getElementById('stat-total-profit').innerText = new Intl.NumberFormat('ru-RU').format(tp)+' ₽';
+      document.getElementById('stat-avg-roi').innerText = (tb>0?Math.round((tp/tb)*100):0)+'%';
+      document.getElementById('stat-success-count').innerText = `Сделок: ${sld.length}`;
+
+      // Table
+      const tbEl=document.getElementById('trades-tbody'), msg=document.getElementById('no-trades-message');
+      tbEl.innerHTML='';
+      const fil=trades.filter(t=>currentFilter==='all'||t.status===currentFilter);
+      if(!fil.length) msg.classList.remove('hidden'); else msg.classList.add('hidden');
+      
+      fil.forEach(t=>{
+        const r=document.createElement('tr');
+        r.className='hover:bg-slate-50 transition-all';
+        const txt={bought:'Куплено',listed:'На ауке',sold:'Продано',failed:'Убыток'}[t.status];
+        const bg={bought:'bg-blue-100 text-blue-700 border-blue-200',listed:'bg-orange-100 text-orange-700 border-orange-200',sold:'bg-[#E8F5E9] text-zone-accent border-zone-border',failed:'bg-red-100 text-red-700 border-red-200'}[t.status];
+        
+        r.innerHTML=`
+          <td class="p-4"><p class="font-bold text-zone-darkText">${t.name}</p><p class="text-[9px] text-slate-400 font-sans mt-0.5">${t.createdAt}</p></td>
+          <td class="p-4 text-slate-500 font-bold">${new Intl.NumberFormat('ru-RU').format(t.buyPrice)}</td>
+          <td class="p-4 text-slate-500 font-bold">${new Intl.NumberFormat('ru-RU').format(t.sellPrice)}</td>
+          <td class="p-4 text-zone-red font-bold">${new Intl.NumberFormat('ru-RU').format(t.tax)}</td>
+          <td class="p-4"><p class="font-bold ${t.profit<0?'text-zone-red':'text-zone-accent'}">${t.profit>0?'+':''}${new Intl.NumberFormat('ru-RU').format(t.profit)}</p><p class="text-[9px] text-slate-500 mt-0.5">ROI: <strong class="text-zone-orange">${t.roi}%</strong></p></td>
+          <td class="p-4"><div class="flex items-center gap-2"><span class="px-2 py-1 rounded text-[9px] font-bold border ${bg} uppercase tracking-wider">${txt}</span><select class="status-sel bg-white border border-zone-border text-[9px] rounded p-1 outline-none"><option value="bought" ${t.status==='bought'?'selected':''}>Куплено</option><option value="listed" ${t.status==='listed'?'selected':''}>На аук</option><option value="sold" ${t.status==='sold'?'selected':''}>Продан</option><option value="failed" ${t.status==='failed'?'selected':''}>Провал</option></select></div></td>
+          <td class="p-4 text-right"><button class="del-btn text-slate-400 hover:text-zone-red transition-all">✕</button></td>
+        `;
+        r.querySelector('.status-sel').onchange = (e) => window.updateTradeStatus(t.id, e.target.value);
+        r.querySelector('.del-btn').onclick = () => window.deleteTrade(t.id);
+        tbEl.appendChild(r);
       });
     }
 
-
-    // ================= ADMIN ПАНЕЛЬ =================
-    function toggleAdminPanelDirect() {
-      document.getElementById('admin-panel').classList.remove('hidden');
-      if(isAdminAuthorized){ document.getElementById('admin-auth-gate').classList.add('hidden'); document.getElementById('admin-workspace').classList.remove('hidden'); loadAllLicenseKeys(); }
-      else { document.getElementById('admin-auth-gate').classList.remove('hidden'); document.getElementById('admin-workspace').classList.add('hidden'); }
-    }
-    function closeAdminPanel() { document.getElementById('admin-panel').classList.add('hidden'); }
-
-    async function verifyAdminPassword() {
-      const pass = document.getElementById('admin-pass-input').value.trim();
-      if(!pass) return;
-      const ref = doc(db, 'artifacts', appId, 'public', 'data', 'admin', 'config');
-      let snap = await getDoc(ref);
-      let correctHash = DEFAULT_ADMIN_HASH;
-      if(!snap.exists()) await setDoc(ref, { passwordHash: correctHash }); else correctHash = snap.data().passwordHash || correctHash;
+    // ADMIN SECURITY & KEYS
+    window.verifyAdminPassword = async function() {
+      const p = document.getElementById('admin-pass-input').value.trim();
+      if(!p) return window.showToast('Введите пароль!','error');
+      const hashed = await window.hashString(p);
       
-      const enteredHash = await sha256(pass);
-      if(enteredHash === correctHash) {
-        isAdminAuthorized=true;
-        document.getElementById('admin-auth-gate').classList.add('hidden');
-        document.getElementById('admin-workspace').classList.remove('hidden');
-        const s = localStorage.getItem(LOCAL_PREFIX+'firebase_config_object');
-        document.getElementById('firebase-config-textarea').value = s?JSON.stringify(JSON.parse(s),null,2):JSON.stringify(HARDCODED_FIREBASE_CONFIG,null,2);
-        showToast('Вход выполнен!','success'); loadAllLicenseKeys();
-      } else showToast('Неверный пароль!','error');
-    }
+      const { doc, getDoc, setDoc } = window.FirebaseLib;
+      try {
+        const ref = doc(db,'artifacts',appId,'public','data','admin','config');
+        let snap = await getDoc(ref);
+        
+        // Хеш по умолчанию для пароля "admin"
+        const DEFAULT_HASH = "8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918"; 
+        
+        if(!snap.exists()) {
+          await setDoc(ref, { hash: DEFAULT_HASH });
+          snap = await getDoc(ref);
+        }
+        
+        if(hashed === snap.data().hash) {
+          document.getElementById('admin-auth-gate').classList.add('hidden');
+          document.getElementById('admin-workspace').classList.remove('hidden');
+          
+          const s = localStorage.getItem(LOCAL_PREFIX+'firebase_config_object');
+          document.getElementById('firebase-config-textarea').value = s ? s : JSON.stringify(HARDCODED_FIREBASE_CONFIG,null,2);
+          
+          window.playSfx('access_granted'); window.showToast('Админ-доступ открыт','success');
+          _loadKeys();
+        } else {
+          window.showToast('Неверный пароль!','error');
+        }
+      } catch(e) { window.showToast('Сбой проверки: '+e.message,'error'); }
+    };
 
-    async function changeAdminPasswordOnline() {
-      const n1 = prompt("Новый мастер-пароль:"); if(!n1) return;
-      const n2 = prompt("Повторите пароль:"); if(n1!==n2) return showToast("Пароли не совпадают!","error");
-      const hash = await sha256(n1);
-      await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'admin', 'config'), { passwordHash: hash });
-      showToast("Пароль успешно изменен!","success");
-    }
+    window.changeAdminPassword = async function() {
+      const p = document.getElementById('new-admin-pass-input').value.trim();
+      if(!p) return window.showToast('Введите новый пароль!','error');
+      const hashed = await window.hashString(p);
+      const { doc, updateDoc } = window.FirebaseLib;
+      try {
+        await updateDoc(doc(db,'artifacts',appId,'public','data','admin','config'), { hash: hashed });
+        document.getElementById('new-admin-pass-input').value = '';
+        window.showToast('Пароль успешно изменен!','success');
+        window.playSfx('cash_register');
+      } catch(e) { window.showToast('Ошибка смены пароля','error'); }
+    };
 
-    async function saveFirebaseConfigFromAdmin() {
-      const val = document.getElementById('firebase-config-textarea').value;
-      if(!val){ localStorage.removeItem(LOCAL_PREFIX+'firebase_config_object'); location.reload(); return; }
-      try { JSON.parse(val); localStorage.setItem(LOCAL_PREFIX+'firebase_config_object', val); location.reload(); } catch(e){ showToast('Некорректный JSON','error'); }
-    }
-
-    async function loadAllLicenseKeys() {
-      if(!db) return;
+    async function _loadKeys() {
+      const { collection, onSnapshot } = window.FirebaseLib;
       onSnapshot(collection(db,'artifacts',appId,'public','data','license_keys'), snap => {
         licenseKeys=[]; snap.forEach(d=>licenseKeys.push({key:d.id,...d.data()}));
-        const tbody=document.getElementById('keys-tbody'); tbody.innerHTML='';
+        
+        const tb=document.getElementById('keys-tbody'), msg=document.getElementById('no-keys-message');
         document.getElementById('key-count-display').innerText=`Всего: ${licenseKeys.length}`;
-        licenseKeys.forEach(k => {
-          const tr=document.createElement('tr');
-          tr.className="border-b border-zone-border/30 hover:bg-slate-100 transition-all";
-          tr.innerHTML=`
-            <td class="p-3 font-bold text-zone-orange cursor-pointer hover:underline" onclick="copyToClipboard('${k.key}')">${k.key}</td>
-            <td class="p-3 text-slate-500">${k.days}д</td>
-            <td class="p-3 ${k.status==='active'?'text-zone-accent font-bold':'text-slate-400'}">${k.status==='active'?'Доступен':'Использован'}</td>
-            <td class="p-3 text-right"><button onclick="deleteLicenseKey('${k.key}')" class="text-slate-400 hover:text-zone-red">Удалить</button></td>
-          `; tbody.appendChild(tr);
+        tb.innerHTML='';
+        if(!licenseKeys.length) msg.classList.remove('hidden'); else msg.classList.add('hidden');
+        
+        licenseKeys.forEach(k=>{
+          const r=document.createElement('tr');
+          const badge=k.status==='active'?`<span class="text-zone-accent font-bold">Активен</span>`:`<span class="text-slate-400 font-bold">Б/У</span>`;
+          r.innerHTML=`
+            <td class="p-2 text-zone-orange font-bold cursor-pointer hover:underline" title="Копировать">${k.key}</td>
+            <td class="p-2 text-slate-500 font-bold">${k.days}д</td>
+            <td class="p-2">${badge}</td>
+            <td class="p-2 text-right"><button class="del-k text-slate-400 hover:text-zone-red text-[9px] uppercase font-bold transition-all">Удалить</button></td>
+          `;
+          r.querySelector('td').onclick = () => window.copyToClipboard(k.key);
+          r.querySelector('.del-k').onclick = () => window.deleteLicenseKey(k.key);
+          tb.appendChild(r);
         });
       });
     }
 
-    async function generateNewLicenseKey() {
-      const days = parseInt(document.getElementById('key-days-select').value)||1;
-      const p="ABCDEFGHJKLMNOPQRSTUVWXYZ23456789", gen=n=>Array.from({length:n},()=>p[Math.floor(Math.random()*p.length)]).join('');
+    window.generateNewLicenseKey = async function() {
+      const days=parseInt(document.getElementById('key-days-select').value)||1;
+      const p="ABCDEFGHJKLMNOPQRSTUVWXYZ23456789";
+      const gen=n=>Array.from({length:n},()=>p[Math.floor(Math.random()*p.length)]).join('');
       const key=`SC-D${days}-${gen(4)}-${gen(4)}-${gen(4)}`;
-      await setDoc(doc(db,'artifacts',appId,'public','data','license_keys',key), {days, status:'active', createdAt:Date.now()});
-      document.getElementById('new-key-display').innerText=key; showToast('Ключ готов!','success');
-    }
+      
+      const { doc, setDoc } = window.FirebaseLib;
+      try {
+        await setDoc(doc(db,'artifacts',appId,'public','data','license_keys',key), { days, status:'active', createdAt:Date.now() });
+        window.showToast(`Ключ ${key} выпущен!`,'success'); window.playSfx('cash_register');
+        window.logAction(`Сгенерирован ключ на ${days} дн.`);
+      } catch(e) { window.showToast('Сбой генерации','error'); }
+    };
 
-    async function deleteLicenseKey(key) {
-      if(confirm('Удалить ключ '+key+'?')){ await deleteDoc(doc(db,'artifacts',appId,'public','data','license_keys',key)); showToast('Ключ удален','info'); }
-    }
+    window.deleteLicenseKey = async function(key) {
+      if(!await window.showCustomConfirm('Удаление','Уничтожить этот ключ навсегда?')) return;
+      const { doc, deleteDoc } = window.FirebaseLib;
+      try {
+        await deleteDoc(doc(db,'artifacts',appId,'public','data','license_keys',key));
+        window.showToast('Ключ стерт','info'); window.playSfx('trash_delete');
+      } catch(e){}
+    };
 
-    window.onFirebaseLoaded = initSystem;
+    // Экспорт / Импорт
+    window.exportTrades=function(){
+      const a=document.createElement('a'); a.href='data:text/json;charset=utf-8,'+encodeURIComponent(JSON.stringify(trades,null,2));
+      a.download=`sz_trades_${Date.now()}.json`; document.body.appendChild(a); a.click(); a.remove(); window.showToast('Экспортировано!','success');
+    };
+    window.triggerImport=()=>document.getElementById('import-file').click();
+    window.importTrades=function(e){
+      const f=e.target.files[0]; if(!f) return;
+      const r=new FileReader(); r.onload=async ev=>{
+        try{
+          const p=JSON.parse(ev.target.result);
+          if(Array.isArray(p)){ trades=p; for(const t of trades) await _saveTrade(t); window.showToast('Импортировано!','success'); }
+        }catch(err){window.showToast('Ошибка файла!','error');}
+      }; r.readAsText(f);
+    };
+
+    window.onFirebaseLoaded = function() { initSystem(); };
   </script>
 </body>
 </html>
