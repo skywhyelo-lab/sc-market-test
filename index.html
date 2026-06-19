@@ -42,7 +42,7 @@
   </script>
   
   <style>
-    /* Styling Scrollbars to match image_2b16c1.jpg light military aesthetic */
+    /* Styling Scrollbars to match light military aesthetic */
     ::-webkit-scrollbar {
       width: 6px;
       height: 6px;
@@ -64,7 +64,7 @@
     }
 
     .sidebar-active {
-      background-color: #FFFFFF;
+      background-color: #E8F5E9;
       color: #114B31;
       border-right: 3px solid #114B31;
     }
@@ -75,42 +75,41 @@
     .view-container.active {
       display: flex;
     }
+    
+    .quick-btn {
+      font-size: 9px;
+      padding: 4px 8px;
+      border-radius: 6px;
+      border: 1px solid #CAD6D2;
+      background: #F0F5F3;
+      color: #5A6D82;
+      font-family: 'Fira Code', monospace;
+      font-weight: 700;
+      transition: all 0.15s;
+    }
+    .quick-btn:hover {
+      border-color: #114B31;
+      color: #114B31;
+      background: #E8F5E9;
+    }
   </style>
 
-  <!-- Firebase JavaScript SDK (v11.6.1) -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import { getFirestore, doc, setDoc, getDoc, updateDoc, collection, onSnapshot, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-    window.FirebaseLib = {
-      initializeApp, getAuth, signInAnonymously, onAuthStateChanged,
-      getFirestore, doc, setDoc, getDoc, updateDoc, collection, onSnapshot, deleteDoc
-    };
-
-    if (window.onFirebaseLoaded) {
-      window.onFirebaseLoaded();
-    }
-  </script>
 </head>
-<body class="min-h-screen flex relative overflow-x-hidden">
+<body class="min-h-screen flex relative overflow-x-hidden text-zone-darkText">
 
-  <!-- Toasts notification pipeline -->
+  <!-- Контейнер для всплывающих уведомлений -->
   <div id="toast-container" class="fixed top-6 right-6 z-50 flex flex-col gap-3 max-w-sm w-full pointer-events-none font-sans"></div>
 
-  <!-- -->
   <!-- CUSTOM INTERACTIVE MODALS -->
   <div id="custom-modal-root" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100] flex items-center justify-center p-4 hidden">
     <div class="max-w-md w-full bg-white border border-zone-border rounded-2xl p-6 shadow-premium relative">
       <h3 id="modal-title" class="text-base font-extrabold font-mono tracking-wider uppercase text-zone-darkText mb-3">Внимание</h3>
       <p id="modal-desc" class="text-xs text-slate-500 mb-5 leading-relaxed">Вы уверены, что хотите выполнить это действие?</p>
       
-      <!-- Input container (for prompt modal type) -->
       <div id="modal-input-container" class="mb-5 hidden">
         <input type="text" id="modal-text-input" class="w-full bg-zone-inputBg border border-zone-border focus:border-zone-accent rounded-xl px-4 py-2.5 text-xs text-slate-800 outline-none font-mono">
       </div>
 
-      <!-- Control actions -->
       <div class="flex justify-end gap-3 text-xs font-mono">
         <button id="modal-btn-cancel" class="px-4 py-2.5 rounded-xl border border-zone-border text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-all">Отмена</button>
         <button id="modal-btn-confirm" class="px-5 py-2.5 rounded-xl bg-zone-accent text-white font-bold hover:bg-zone-accentHover transition-all">Подтвердить</button>
@@ -138,12 +137,10 @@
 
       <div id="auth-error-banner" class="hidden bg-zone-red/10 border border-zone-red/30 rounded-xl p-4 text-xs text-zone-red font-mono leading-relaxed mb-4">
         <strong class="block text-zone-darkText font-bold mb-1">⚠️ ОШИБКА НАСТРОЙКИ FIREBASE AUTH:</strong>
-        В вашем проекте Firebase отключен анонимный вход. Терминал не может подключиться.<br><br>
+        В вашем проекте Firebase отключен анонимный вход.<br><br>
         <strong class="block text-zone-darkText font-bold mb-0.5">Как исправить:</strong>
-        1. Перейдите в <a href="https://console.firebase.google.com/" target="_blank" class="underline text-zone-blue font-bold">Firebase Console</a>.<br>
-        2. Раздел <strong class="text-zone-darkText font-bold">Authentication</strong> -> вкладка <strong class="text-zone-darkText font-bold">Sign-in method</strong>.<br>
-        3. Нажмите <strong class="text-zone-darkText font-bold">"Add new provider"</strong> и выберите <strong class="text-zone-darkText font-bold">"Anonymous"</strong>.<br>
-        4. Включите его (Enable) и сохраните изменения.
+        1. Включите провайдер <strong class="text-zone-darkText font-bold">"Anonymous"</strong> в Firebase Console -> Authentication.<br>
+        2. Обновите страницу.
       </div>
 
       <div class="space-y-4">
@@ -153,13 +150,13 @@
                  class="w-full bg-zone-inputBg border border-zone-border rounded-xl px-4 py-3 text-center text-xs font-bold tracking-wider font-mono text-zone-orange uppercase placeholder-slate-400 focus:border-zone-orange outline-none transition-all">
         </div>
 
-        <button id="btn-activate-license" class="w-full bg-zone-accent hover:bg-zone-accentHover text-white font-extrabold text-xs py-3.5 rounded-xl uppercase tracking-widest transition-all">
+        <button onclick="activateLicense()" class="w-full bg-zone-accent hover:bg-zone-accentHover text-white font-extrabold text-xs py-3.5 rounded-xl uppercase tracking-widest transition-all">
           Активировать терминал
         </button>
 
         <div class="flex justify-between items-center pt-4 border-t border-zone-border/60 text-[10px] font-mono">
           <span class="text-slate-500">Нет ключа доступа?</span>
-          <button id="btn-open-admin-from-gate" class="text-zone-accent hover:underline uppercase font-bold tracking-wider">Панель управления</button>
+          <button onclick="toggleAdminPanelDirect()" class="text-zone-accent hover:underline uppercase font-bold tracking-wider">Панель управления</button>
         </div>
       </div>
     </div>
@@ -167,72 +164,70 @@
 
 
   <!-- ================= СИСТЕМНЫЙ LEFT SIDEBAR (НАВИГАЦИЯ) ================= -->
-  <aside class="w-16 md:w-20 bg-zone-bg border-r border-zone-border flex flex-col items-center py-6 justify-between shrink-0 relative z-30">
+  <aside id="main-sidebar" class="hidden w-20 bg-white border-r border-zone-border flex flex-col items-center py-6 justify-between shrink-0 relative z-30 shadow-flat">
     <div class="flex flex-col items-center gap-6 w-full">
       <!-- Logo brand marker -->
-      <div class="w-10 h-10 rounded-xl bg-zone-accent text-white flex items-center justify-center font-black font-mono shadow-flat cursor-pointer" onclick="clickGeigerManual()">
+      <div class="w-12 h-12 rounded-xl bg-zone-accent text-white flex items-center justify-center font-black font-mono shadow-flat text-lg">
         SZ
       </div>
 
       <!-- Navigation links -->
       <nav class="flex flex-col gap-2 w-full px-2">
         <button onclick="switchView('dashboard')" id="nav-dashboard" class="sidebar-active w-full py-3 rounded-xl flex flex-col items-center justify-center transition-all text-xs font-bold" title="Dashboard">
-          📊 <span class="hidden md:inline text-[8px] uppercase tracking-wider mt-1">Хаб</span>
+          📊 <span class="text-[8px] uppercase tracking-wider mt-1">Хаб</span>
         </button>
-        <button onclick="switchView('reestr')" id="nav-journal" class="w-full py-3 rounded-xl flex flex-col items-center justify-center text-slate-500 hover:text-zone-accent transition-all text-xs font-bold" title="Сделки">
-          📋 <span class="hidden md:inline text-[8px] uppercase tracking-wider mt-1">Реестр</span>
+        <button onclick="switchView('reestr')" id="nav-reestr" class="w-full py-3 rounded-xl flex flex-col items-center justify-center text-slate-500 hover:text-zone-accent hover:bg-slate-50 transition-all text-xs font-bold" title="Сделки">
+          📋 <span class="text-[8px] uppercase tracking-wider mt-1">Реестр</span>
         </button>
-        <button onclick="switchView('analytics')" id="nav-analytics" class="w-full py-3 rounded-xl flex flex-col items-center justify-center text-slate-500 hover:text-zone-accent transition-all text-xs font-bold" title="Аналитика">
-          📈 <span class="hidden md:inline text-[8px] uppercase tracking-wider mt-1">Графики</span>
+        <button onclick="switchView('analytics')" id="nav-analytics" class="w-full py-3 rounded-xl flex flex-col items-center justify-center text-slate-500 hover:text-zone-accent hover:bg-slate-50 transition-all text-xs font-bold" title="Аналитика">
+          📈 <span class="text-[8px] uppercase tracking-wider mt-1">Графики</span>
         </button>
-        <button onclick="switchView('notepad')" id="nav-notepad" class="w-full py-3 rounded-xl flex flex-col items-center justify-center text-slate-500 hover:text-zone-accent transition-all text-xs font-bold" title="Блокнот">
-          📝 <span class="hidden md:inline text-[8px] uppercase tracking-wider mt-1">Заметки</span>
+        <button onclick="switchView('notepad')" id="nav-notepad" class="w-full py-3 rounded-xl flex flex-col items-center justify-center text-slate-500 hover:text-zone-accent hover:bg-slate-50 transition-all text-xs font-bold" title="Блокнот">
+          📝 <span class="text-[8px] uppercase tracking-wider mt-1">Заметки</span>
         </button>
       </nav>
     </div>
 
-    <!-- Admin shortcut link -->
-    <button onclick="toggleAdminPanelDirect()" id="nav-admin" class="w-12 h-12 rounded-xl border border-zone-border flex items-center justify-center text-slate-500 hover:text-zone-accent hover:bg-white transition-all text-sm" title="Администратор">
+    <button onclick="toggleAdminPanelDirect()" id="nav-admin" class="w-12 h-12 rounded-xl border border-zone-border flex items-center justify-center text-slate-500 hover:text-zone-accent hover:bg-zone-inputBg transition-all text-sm" title="Администратор">
       ⚙️
     </button>
   </aside>
 
 
   <!-- ================= ОСНОВНОЙ РАБОЧИЙ ЭКРАН ================= -->
-  <main class="flex-grow flex flex-col min-h-screen overflow-y-auto relative z-10">
+  <main id="main-terminal" class="hidden flex-grow flex-col min-h-screen overflow-y-auto relative z-10 w-full">
     
-    <!-- VIEW A: DASHBOARD (ГЛАВНЫЙ ЭКРАН) -->
-    <div id="view-dashboard" class="view-container active flex flex-col gap-6 p-4 sm:p-6 md:p-8">
+    <!-- VIEW 1: DASHBOARD (ГЛАВНЫЙ ЭКРАН) -->
+    <div id="view-dashboard" class="view-container active flex-col gap-6 p-4 sm:p-6 md:p-8">
       
       <!-- HEADER -->
       <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-6 rounded-2xl border border-zone-border shadow-flat relative overflow-hidden">
         <div class="absolute inset-y-0 left-0 w-1.5 bg-zone-accent"></div>
         
         <div class="flex items-center gap-4">
-          <div class="bg-zone-greenDim border border-zone-accent/20 p-2.5 rounded-xl text-zone-accent animate-pulse-rad">
+          <div class="bg-zone-greenDim border border-zone-accent/20 p-2.5 rounded-xl text-zone-accent">
             ⚡
           </div>
           <div>
             <h1 class="text-lg font-black tracking-widest uppercase text-zone-darkText font-mono">STALZONE TERMINAL</h1>
-            <p class="text-[9px] text-slate-400 font-extrabold uppercase tracking-widest mt-0.5">Личный тактический хаб перекупщика Зоны</p>
+            <p class="text-[9px] text-slate-400 font-extrabold uppercase tracking-widest mt-0.5">SaaS Pro Лицензия активна</p>
           </div>
         </div>
 
-        <!-- Сессия и Сеть -->
         <div class="flex flex-wrap gap-2 items-center w-full md:w-auto">
           <div class="bg-zone-inputBg px-3 py-2 rounded-xl border border-zone-border flex items-center gap-2 text-xs font-mono">
             <span id="connection-status-dot" class="w-2 h-2 rounded-full bg-zone-orange animate-pulse"></span>
-            <span id="connection-status-text" class="text-slate-500 text-[10px] uppercase">Связь...</span>
+            <span id="connection-status-text" class="text-slate-500 text-[10px] uppercase font-bold">Связь...</span>
           </div>
 
           <div class="bg-zone-inputBg px-4 py-2 rounded-xl border border-zone-border flex items-center gap-3 text-xs font-mono">
             <div class="text-left">
-              <span class="text-slate-400 block text-[8px] uppercase">Сессия истекает через:</span>
+              <span class="text-slate-400 block text-[8px] uppercase font-bold">Окончание сессии:</span>
               <strong id="license-countdown" class="text-zone-accent">Вычисление...</strong>
             </div>
           </div>
 
-          <button id="btn-logout-license" class="bg-zone-red/10 hover:bg-zone-red/20 text-zone-red px-3.5 py-2 rounded-xl border border-zone-red/20 transition-all text-xs font-mono font-bold">
+          <button onclick="logoutLicense()" class="bg-zone-red/10 hover:bg-zone-red/20 text-zone-red px-3.5 py-2 rounded-xl border border-zone-red/20 transition-all text-xs font-mono font-bold">
             Выйти
           </button>
         </div>
@@ -240,89 +235,65 @@
 
       <!-- ТАКТИЧЕСКИЕ ПОКАЗАТЕЛИ -->
       <section class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <!-- Card 1 -->
         <div class="bg-white p-5 rounded-2xl border border-zone-border flex justify-between items-center shadow-flat">
           <div>
-            <p class="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Сумма в обороте</p>
+            <p class="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">В обороте</p>
             <p id="dashboard-total-invested" class="text-xl font-black font-mono text-zone-darkText">0 ₽</p>
-            <span class="text-[9px] text-slate-400 font-medium mt-0.5 block">Активные закупки на аукционе</span>
+            <span class="text-[9px] text-slate-400 font-medium mt-0.5 block">Активные закупки</span>
           </div>
-          <svg class="w-12 h-8 text-zone-cyan opacity-40" viewBox="0 0 50 30" fill="none">
-            <path d="M0,25 L10,20 L20,28 L30,15 L40,18 L50,5" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>
-          </svg>
         </div>
 
-        <!-- Card 2 -->
         <div class="bg-white p-5 rounded-2xl border border-zone-border flex justify-between items-center shadow-flat">
           <div>
-            <p class="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Ожидаемая выручка</p>
+            <p class="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Ожид. выручка</p>
             <p id="dashboard-expected-revenue" class="text-xl font-black font-mono text-zone-blue">0 ₽</p>
-            <span class="text-[9px] text-slate-400 font-medium mt-0.5 block">За вычетом налога биржи (5%)</span>
+            <span class="text-[9px] text-slate-400 font-medium mt-0.5 block">После вычета 5%</span>
           </div>
-          <svg class="w-12 h-8 text-zone-blue opacity-40" viewBox="0 0 50 30" fill="none">
-            <path d="M0,20 L10,22 L20,15 L30,18 L40,8 L50,2" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>
-          </svg>
         </div>
 
-        <!-- Card 3 -->
-        <div class="bg-white p-5 rounded-2xl border border-zone-border flex justify-between items-center shadow-flat ring-1 ring-zone-radiation/10">
+        <div class="bg-white p-5 rounded-2xl border border-zone-border flex justify-between items-center shadow-flat ring-1 ring-zone-accent/20 bg-gradient-to-br from-white to-zone-greenDim/30">
           <div>
             <p class="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Чистая прибыль</p>
-            <p id="dashboard-total-profit" class="text-xl font-black font-mono text-zone-radiation">0 ₽</p>
-            <span id="dashboard-success-count" class="text-[9px] text-zone-radiation/80 font-medium mt-0.5 block">Сделок завершено: 0</span>
+            <p id="dashboard-total-profit" class="text-xl font-black font-mono text-zone-accent">0 ₽</p>
+            <span id="dashboard-success-count" class="text-[9px] text-zone-accent/80 font-bold mt-0.5 block">Сделок завершено: 0</span>
           </div>
-          <svg class="w-12 h-8 text-zone-radiation opacity-40" viewBox="0 0 50 30" fill="none">
-            <path d="M0,28 L10,25 L20,20 L30,12 L40,15 L50,5" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>
-          </svg>
         </div>
 
-        <!-- Card 4 -->
         <div class="bg-white p-5 rounded-2xl border border-zone-border flex justify-between items-center shadow-flat">
           <div>
-            <p class="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Окупаемость (ROI)</p>
+            <p class="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Средний ROI</p>
             <p id="dashboard-avg-roi" class="text-xl font-black font-mono text-zone-orange">0%</p>
-            <span class="text-[9px] text-slate-400 font-medium mt-0.5 block">Эффективность инвестиций</span>
+            <span class="text-[9px] text-slate-400 font-medium mt-0.5 block">Эффективность</span>
           </div>
-          <svg class="w-12 h-8 text-zone-orange opacity-40" viewBox="0 0 50 30" fill="none">
-            <path d="M0,15 L10,25 L20,10 L30,12 L40,5 L50,2" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>
-          </svg>
         </div>
       </section>
 
-      <!-- КАЛЬКУЛЯТОРЫ И ТАКТИЧЕСКИЙ ЖУРНАЛ СОБЫТИЙ -->
+      <!-- КАЛЬКУЛЯТОРЫ И ЛОГ -->
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
         <!-- Калькулятор лота (7 колонок) -->
         <div class="lg:col-span-7 flex flex-col gap-4">
-          <!-- Табы калькуляторов -->
-          <div class="bg-white p-1 rounded-xl border border-zone-border flex gap-2">
-            <button id="btn-tab-direct" onclick="switchCalculator('direct')" class="flex-1 py-2 rounded-lg text-xs font-bold uppercase tracking-wider font-mono transition-all bg-zone-accent text-white shadow-flat">
-              [ Прямой расчет ]
+          <div class="bg-white p-1.5 rounded-xl border border-zone-border flex gap-2 shadow-sm">
+            <button id="btn-tab-direct" onclick="switchCalculator('direct')" class="flex-1 py-2.5 rounded-lg text-[11px] font-bold uppercase tracking-wider font-mono transition-all bg-zone-accent text-white shadow-flat">
+              Прямой расчет
             </button>
-            <button id="btn-tab-reverse" onclick="switchCalculator('reverse')" class="flex-1 py-2 rounded-lg text-xs font-bold uppercase tracking-wider font-mono transition-all text-slate-500 hover:text-zone-darkText">
-              [ Обратный расчет ]
+            <button id="btn-tab-reverse" onclick="switchCalculator('reverse')" class="flex-1 py-2.5 rounded-lg text-[11px] font-bold uppercase tracking-wider font-mono transition-all text-slate-500 hover:text-zone-darkText">
+              Обратный расчет
             </button>
           </div>
 
-          <!-- Контейнер расчетов -->
           <div class="bg-white p-6 rounded-2xl border border-zone-border flex flex-col justify-between min-h-[420px] shadow-flat">
             
             <!-- Прямой -->
-            <div id="panel-direct-calc" class="space-y-4">
-              <div class="flex justify-between items-center">
-                <h3 class="text-xs font-extrabold uppercase font-mono tracking-widest text-slate-700">Прямой анализ лота</h3>
-                <span class="text-[9px] font-mono text-slate-400 uppercase">Налог биржи: 5%</span>
-              </div>
-              
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div id="panel-direct-calc" class="space-y-5">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <div>
-                  <label class="block text-[9px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Цена покупки:</label>
-                  <div class="flex items-center bg-zone-inputBg border border-zone-border focus-within:border-zone-accent/60 rounded-xl px-3 transition-all">
-                    <input type="number" id="direct-buy" oninput="calculateDirect()" placeholder="Например: 120000" class="w-full bg-transparent border-none outline-none py-2.5 font-bold font-mono text-zone-darkText text-xs [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
-                    <span class="text-xs font-mono text-slate-500 ml-2">₽</span>
+                  <label class="block text-[9px] font-bold uppercase tracking-wider text-slate-500 mb-2">Цена закупки:</label>
+                  <div class="flex items-center bg-zone-inputBg border border-zone-border focus-within:border-zone-accent rounded-xl px-3 transition-all">
+                    <input type="number" id="direct-buy" oninput="calculateDirect()" placeholder="120000" class="w-full bg-transparent border-none outline-none py-3 font-bold font-mono text-zone-darkText text-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
+                    <span class="text-xs font-mono text-slate-400 ml-2">₽</span>
                   </div>
-                  <!-- Быстрые хелперы -->
-                  <div class="flex gap-1 mt-2">
+                  <div class="flex gap-1.5 mt-2.5">
                     <button onclick="quickSetBuy(10000)" class="quick-btn">10к</button>
                     <button onclick="quickSetBuy(100000)" class="quick-btn">100к</button>
                     <button onclick="quickSetBuy(500000)" class="quick-btn">500к</button>
@@ -331,13 +302,12 @@
                 </div>
 
                 <div>
-                  <label class="block text-[9px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Цена продажи:</label>
-                  <div class="flex items-center bg-zone-inputBg border border-zone-border focus-within:border-zone-accent/60 rounded-xl px-3 transition-all">
-                    <input type="number" id="direct-sell" oninput="calculateDirect()" placeholder="Например: 190000" class="w-full bg-transparent border-none outline-none py-2.5 font-bold font-mono text-zone-darkText text-xs [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
-                    <span class="text-xs font-mono text-slate-500 ml-2">₽</span>
+                  <label class="block text-[9px] font-bold uppercase tracking-wider text-slate-500 mb-2">Цена продажи:</label>
+                  <div class="flex items-center bg-zone-inputBg border border-zone-border focus-within:border-zone-accent rounded-xl px-3 transition-all">
+                    <input type="number" id="direct-sell" oninput="calculateDirect()" placeholder="190000" class="w-full bg-transparent border-none outline-none py-3 font-bold font-mono text-zone-darkText text-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
+                    <span class="text-xs font-mono text-slate-400 ml-2">₽</span>
                   </div>
-                  <!-- Увеличители -->
-                  <div class="flex gap-1.5 mt-2">
+                  <div class="flex gap-1.5 mt-2.5">
                     <button onclick="multiplySell(1.15)" class="quick-btn">+15%</button>
                     <button onclick="multiplySell(1.30)" class="quick-btn">+30%</button>
                     <button onclick="multiplySell(1.50)" class="quick-btn">+50%</button>
@@ -346,54 +316,47 @@
                 </div>
               </div>
 
-              <!-- Аналитический результат -->
-              <div class="bg-zone-inputBg p-4 rounded-xl border border-zone-border grid grid-cols-2 gap-y-2 gap-x-4 text-xs font-mono">
-                <div class="text-slate-500">Налог аукциона (5%):</div>
+              <div class="bg-zone-inputBg p-5 rounded-xl border border-zone-border grid grid-cols-2 gap-y-3 gap-x-4 text-xs font-mono">
+                <div class="text-slate-500">Налог (5%):</div>
                 <div id="direct-res-tax" class="text-right font-bold text-zone-red">0 ₽</div>
                 
-                <div class="text-slate-500">Чистая выручка (на руки):</div>
+                <div class="text-slate-500">На руки:</div>
                 <div id="direct-res-revenue" class="text-right font-bold text-zone-blue">0 ₽</div>
 
-                <div class="text-slate-500">Порог окупаемости (Break-Even):</div>
+                <div class="text-slate-500">Break-Even (0 прибыли):</div>
                 <div id="direct-res-breakeven" class="text-right font-bold text-slate-400">0 ₽</div>
 
                 <div class="border-t border-zone-border col-span-2 my-1"></div>
                 
                 <div class="text-slate-600 font-bold uppercase">Чистая маржа:</div>
-                <div id="direct-res-profit" class="text-right font-extrabold text-sm text-zone-radiation">0 ₽</div>
+                <div id="direct-res-profit" class="text-right font-black text-base text-zone-accent">0 ₽</div>
 
                 <div class="text-slate-600 font-bold uppercase">ROI:</div>
-                <div id="direct-res-roi" class="text-right font-extrabold text-zone-orange">0%</div>
+                <div id="direct-res-roi" class="text-right font-extrabold text-zone-orange text-sm">0%</div>
               </div>
             </div>
 
             <!-- Обратный -->
-            <div id="panel-reverse-calc" class="space-y-4 hidden">
-              <div class="flex justify-between items-center mb-1">
-                <h3 class="text-xs font-extrabold uppercase font-mono tracking-widest text-slate-700">Поиск цены по желаемой прибыли</h3>
-                <span class="text-[9px] font-mono text-slate-400 uppercase">Target Mode</span>
-              </div>
-
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div id="panel-reverse-calc" class="space-y-5 hidden">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <div>
-                  <label class="block text-[9px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Затраты на скупку:</label>
-                  <div class="flex items-center bg-zone-inputBg border border-zone-border focus-within:border-zone-orange/60 rounded-xl px-3 transition-all">
-                    <input type="number" id="reverse-buy" oninput="calculateReverse()" placeholder="Например: 200000" class="w-full bg-transparent border-none outline-none py-2.5 font-bold font-mono text-zone-darkText text-xs [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
-                    <span class="text-xs font-mono text-slate-500 ml-2">₽</span>
+                  <label class="block text-[9px] font-bold uppercase tracking-wider text-slate-500 mb-2">Затраты на покупку:</label>
+                  <div class="flex items-center bg-zone-inputBg border border-zone-border focus-within:border-zone-orange rounded-xl px-3 transition-all">
+                    <input type="number" id="reverse-buy" oninput="calculateReverse()" placeholder="200000" class="w-full bg-transparent border-none outline-none py-3 font-bold font-mono text-zone-darkText text-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
+                    <span class="text-xs font-mono text-slate-400 ml-2">₽</span>
                   </div>
                 </div>
 
                 <div>
-                  <label class="block text-[9px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Желаемая прибыль:</label>
-                  <div class="flex items-center bg-zone-inputBg border border-zone-border focus-within:border-zone-orange/60 rounded-xl px-3 transition-all">
-                    <input type="number" id="reverse-target" oninput="calculateReverse()" placeholder="Например: 50000" class="w-full bg-transparent border-none outline-none py-2.5 font-bold font-mono text-zone-darkText text-xs [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
-                    <span class="text-xs font-mono text-slate-500 ml-2">₽</span>
+                  <label class="block text-[9px] font-bold uppercase tracking-wider text-slate-500 mb-2">Желаемая прибыль чистыми:</label>
+                  <div class="flex items-center bg-zone-inputBg border border-zone-border focus-within:border-zone-orange rounded-xl px-3 transition-all">
+                    <input type="number" id="reverse-target" oninput="calculateReverse()" placeholder="50000" class="w-full bg-transparent border-none outline-none py-3 font-bold font-mono text-zone-darkText text-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
+                    <span class="text-xs font-mono text-slate-400 ml-2">₽</span>
                   </div>
                 </div>
               </div>
 
-              <!-- Результат -->
-              <div class="bg-zone-inputBg p-4 rounded-xl border border-zone-border grid grid-cols-2 gap-y-2 gap-x-4 text-xs font-mono">
+              <div class="bg-zone-inputBg p-5 rounded-xl border border-zone-border grid grid-cols-2 gap-y-3 gap-x-4 text-xs font-mono">
                 <div class="text-slate-500">Сумма получения (до налога):</div>
                 <div id="reverse-res-hand" class="text-right font-bold text-zone-blue">0 ₽</div>
 
@@ -402,52 +365,47 @@
 
                 <div class="border-t border-zone-border col-span-2 my-1"></div>
 
-                <div class="text-slate-600 font-bold uppercase">Рекомендуемая цена продажи:</div>
-                <div id="reverse-res-sell" class="text-right font-extrabold text-sm text-zone-orange">0 ₽</div>
+                <div class="text-slate-600 font-bold uppercase text-[10px]">Рекомендуемая цена продажи:</div>
+                <div id="reverse-res-sell" class="text-right font-black text-lg text-zone-orange">0 ₽</div>
               </div>
             </div>
 
-            <!-- Нижняя плашка рисков -->
-            <div class="mt-6 pt-4 border-t border-zone-border/50 flex flex-col sm:flex-row justify-between items-center gap-4">
-              <div class="flex items-center gap-2.5 w-full sm:w-auto">
-                <div class="w-2.5 h-2.5 rounded-full bg-slate-400" id="risk-bullet"></div>
+            <!-- Риск и Кнопка -->
+            <div class="mt-6 pt-5 border-t border-zone-border/60 flex flex-col sm:flex-row justify-between items-center gap-4">
+              <div class="flex items-center gap-3 w-full sm:w-auto">
+                <div class="w-3 h-3 rounded-full bg-slate-300" id="risk-bullet"></div>
                 <div class="text-xs">
-                  <span class="text-slate-400 block text-[8px] uppercase font-bold">Угроза маржинальности</span>
-                  <strong id="risk-text" class="text-slate-600 font-mono">Введите параметры...</strong>
+                  <span class="text-slate-400 block text-[8px] uppercase font-bold mb-0.5">Угроза маржинальности</span>
+                  <strong id="risk-text" class="text-slate-600 font-mono">Ожидание ввода...</strong>
                 </div>
               </div>
               
-              <button onclick="addCurrentToTracker()" class="w-full sm:w-auto px-6 py-3.5 rounded-xl font-bold text-xs text-white bg-zone-accent hover:bg-zone-accentHover shadow-flat transition-all duration-150 uppercase tracking-widest flex items-center justify-center gap-2 active:scale-95 shrink-0">
-                Внести сделку в реестр
+              <button onclick="addCurrentToTracker()" class="w-full sm:w-auto px-6 py-3.5 rounded-xl font-bold text-xs text-white bg-zone-accent hover:bg-zone-accentHover shadow-flat transition-all uppercase tracking-widest flex items-center justify-center gap-2 active:scale-95 shrink-0">
+                + Внести в реестр
               </button>
             </div>
 
           </div>
         </div>
 
-        <!-- ТАКТИЧЕСКИЙ ЖУРНАЛ СОБЫТИЙ (5 колонок) -->
+        <!-- ТАКТИЧЕСКИЙ ЛОГ (5 колонок) -->
         <div class="lg:col-span-5 bg-white p-6 rounded-2xl border border-zone-border flex flex-col justify-between shadow-flat">
           <div class="space-y-4">
-            <div class="flex justify-between items-center pb-2 border-b border-zone-border">
+            <div class="flex justify-between items-center pb-3 border-b border-zone-border/60">
               <h3 class="text-xs font-extrabold uppercase font-mono tracking-widest text-slate-700">
-                📡 Тактический монитор сети
+                Тактический Монитор
               </h3>
-              <span id="ping-speed-badge" class="text-[8px] bg-zone-greenDim text-zone-accent font-bold px-1.5 py-0.5 rounded font-mono uppercase">Пинг: 45ms</span>
+              <span class="text-[8px] bg-zone-greenDim text-zone-accent font-bold px-1.5 py-0.5 rounded font-mono uppercase border border-zone-accent/20">Sync Online</span>
             </div>
 
-            <p class="text-xs text-slate-400 font-medium leading-relaxed">
-              Этот лог фиксирует все ключевые операции, транзакции и обновления лицензии вашего SaaS в реальном времени.
+            <p class="text-[11px] text-slate-500 font-medium leading-relaxed mb-2">
+              Системный журнал событий приложения в реальном времени.
             </p>
 
-            <!-- Event logger console viewport -->
-            <div id="terminal-event-log" class="bg-zone-darkest p-3 rounded-xl border border-zone-border h-[220px] overflow-y-auto space-y-1.5 font-mono text-[9px]">
-              <div class="text-slate-600">[СИСТЕМА] Терминал успешно инициализирован.</div>
-              <div class="text-zone-blue">[СЕТЬ] Успешное защищенное подключение к Firestore.</div>
+            <div id="terminal-event-log" class="bg-zone-darkText p-4 rounded-xl border border-[#2A3A4F] h-[280px] overflow-y-auto space-y-2 font-mono text-[10px] shadow-inner text-slate-300">
+              <div class="text-[#A8FF3E]">[СИСТЕМА] Интерфейс загружен. STALZONE Active.</div>
+              <div class="text-[#0A84FF]">[СЕТЬ] Ожидание подключения к Firestore...</div>
             </div>
-          </div>
-
-          <div class="bg-zone-inputBg p-3.5 rounded-xl border border-zone-border text-center mt-4 text-[10px] text-slate-500 leading-normal font-medium">
-            Синхронизация профиля по ключу выполняется автоматически каждые 5 секунд.
           </div>
         </div>
 
@@ -455,248 +413,184 @@
     </div>
 
 
-    <!-- VIEW B: FULL JOURNAL REGISTRY (СДЕЛКИ) -->
+    <!-- VIEW 2: REESTR -->
     <div id="view-reestr" class="view-container flex-col gap-6 p-4 sm:p-6 md:p-8">
       <section class="bg-white p-6 rounded-2xl border border-zone-border shadow-flat">
-        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-5 pb-4 border-b border-zone-border/60">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 pb-4 border-b border-zone-border/60">
           <div>
-            <h3 class="text-xs font-extrabold uppercase font-mono tracking-widest text-zone-darkText">Реестр сделок (Архив торговых логов)</h3>
-            <p class="text-xs text-slate-400 mt-0.5">Полная база транзакций, синхронизированная между всеми вашими девайсами.</p>
+            <h3 class="text-sm font-extrabold uppercase font-mono tracking-widest text-zone-darkText">Реестр сделок</h3>
+            <p class="text-xs text-slate-500 mt-1">Полная база транзакций, облачная синхронизация.</p>
           </div>
           
           <div class="flex flex-wrap gap-2">
-            <button onclick="exportTrades()" class="bg-zone-inputBg hover:bg-slate-100 text-slate-600 px-3.5 py-2 rounded-xl text-xs font-bold border border-zone-border transition-all flex items-center gap-1.5 font-mono">
-              📥 Экспорт (.json)
+            <button onclick="exportTrades()" class="bg-zone-inputBg hover:bg-slate-100 text-slate-600 px-4 py-2 rounded-xl text-xs font-bold border border-zone-border transition-all flex items-center font-mono">
+              📥 Экспорт
             </button>
-            <button onclick="triggerImport()" class="bg-zone-inputBg hover:bg-slate-100 text-slate-600 px-3.5 py-2 rounded-xl text-xs font-bold border border-zone-border transition-all flex items-center gap-1.5 font-mono">
+            <button onclick="triggerImport()" class="bg-zone-inputBg hover:bg-slate-100 text-slate-600 px-4 py-2 rounded-xl text-xs font-bold border border-zone-border transition-all flex items-center font-mono">
               📤 Импорт
             </button>
             <input type="file" id="import-file" accept=".json" class="hidden" onchange="importTrades(event)">
           </div>
         </div>
 
-        <!-- Фильтры реестра -->
-        <div class="flex flex-wrap gap-1.5 mb-4 text-[9px] font-bold uppercase tracking-wider">
-          <button onclick="setFilter('all')" id="filter-all" class="px-3.5 py-2 rounded-lg bg-zone-accent text-white font-extrabold border border-zone-accent transition-all shadow-flat">Все</button>
-          <button onclick="setFilter('bought')" id="filter-bought" class="px-3.5 py-2 rounded-lg text-slate-500 hover:text-zone-darkText border border-zone-border hover:bg-zone-inputBg transition-all">Куплено</button>
-          <button onclick="setFilter('listed')" id="filter-listed" class="px-3.5 py-2 rounded-lg text-slate-500 hover:text-zone-darkText border border-zone-border hover:bg-zone-inputBg transition-all">На ауке</button>
-          <button onclick="setFilter('sold')" id="filter-sold" class="px-3.5 py-2 rounded-lg text-slate-500 hover:text-zone-darkText border border-zone-border hover:bg-zone-inputBg transition-all">Продано</button>
-          <button onclick="setFilter('failed')" id="filter-failed" class="px-3.5 py-2 rounded-lg text-slate-500 hover:text-zone-darkText border border-zone-border hover:bg-zone-inputBg transition-all">Убыток</button>
+        <div class="flex flex-wrap gap-1.5 mb-5 text-[10px] font-bold uppercase tracking-wider">
+          <button onclick="setFilter('all')" id="filter-all" class="px-4 py-2 rounded-lg bg-zone-accent text-white font-extrabold transition-all shadow-flat">Все</button>
+          <button onclick="setFilter('bought')" id="filter-bought" class="px-4 py-2 rounded-lg text-slate-500 bg-zone-inputBg hover:bg-slate-200 transition-all">Куплено</button>
+          <button onclick="setFilter('listed')" id="filter-listed" class="px-4 py-2 rounded-lg text-slate-500 bg-zone-inputBg hover:bg-slate-200 transition-all">На ауке</button>
+          <button onclick="setFilter('sold')" id="filter-sold" class="px-4 py-2 rounded-lg text-slate-500 bg-zone-inputBg hover:bg-slate-200 transition-all">Продано</button>
+          <button onclick="setFilter('failed')" id="filter-failed" class="px-4 py-2 rounded-lg text-slate-500 bg-zone-inputBg hover:bg-slate-200 transition-all">Убыток</button>
         </div>
 
-        <!-- Таблица адаптивного реестра -->
         <div class="overflow-x-auto w-full rounded-xl border border-zone-border">
-          <table class="w-full text-left border-collapse text-xs min-w-[750px]">
+          <table class="w-full text-left border-collapse text-xs min-w-[800px]">
             <thead>
-              <tr class="bg-zone-inputBg text-slate-500 border-b border-zone-border font-mono uppercase text-[8px] tracking-wider font-extrabold">
+              <tr class="bg-zone-inputBg text-slate-500 border-b border-zone-border font-mono uppercase text-[9px] tracking-widest font-extrabold">
                 <th class="p-4">Лот / Описание</th>
-                <th class="p-4">Сумма закупки</th>
-                <th class="p-4">Продажа (Аук)</th>
+                <th class="p-4">Закупка</th>
+                <th class="p-4">Продажа</th>
                 <th class="p-4">Налог</th>
-                <th class="p-4">Чистая маржа / ROI</th>
-                <th class="p-4">Статус сделки</th>
+                <th class="p-4">Маржа / ROI</th>
+                <th class="p-4">Статус</th>
                 <th class="p-4 text-right">Управление</th>
               </tr>
             </thead>
-            <tbody id="trades-tbody" class="divide-y divide-zone-border bg-white">
-              <!-- Строки логов генерируются через JS -->
+            <tbody id="trades-tbody" class="divide-y divide-zone-border/50 bg-white">
+              <!-- JS генерирует строки -->
             </tbody>
           </table>
-          <div id="no-trades-message" class="p-10 text-center text-slate-400 font-mono text-xs uppercase tracking-widest hidden">
-            Реестр пуст. Проведите расчет и внесите первую сделку!
+          <div id="no-trades-message" class="p-12 text-center text-slate-400 font-mono text-[10px] uppercase tracking-widest hidden">
+            Реестр пуст. Проведите расчет и внесите сделку.
           </div>
         </div>
       </section>
     </div>
 
-
-    <!-- VIEW C: LIVE ANALYTICS (ГРАФИКИ ПРИБЫЛИ) -->
+    <!-- VIEW 3: ANALYTICS -->
     <div id="view-analytics" class="view-container flex-col gap-6 p-4 sm:p-6 md:p-8">
       <section class="bg-white p-6 rounded-2xl border border-zone-border shadow-flat">
-        <div class="mb-5 pb-4 border-b border-zone-border/60">
-          <h3 class="text-xs font-extrabold uppercase font-mono tracking-widest text-zone-darkText">Торговая аналитика и статистика</h3>
-          <p class="text-xs text-slate-400 mt-0.5">Интерактивный график доходности на основе закрытых флип-сделок.</p>
+        <div class="mb-6 pb-4 border-b border-zone-border/60">
+          <h3 class="text-sm font-extrabold uppercase font-mono tracking-widest text-zone-darkText">Аналитика доходности</h3>
+          <p class="text-xs text-slate-500 mt-1">График чистой прибыли по закрытым сделкам.</p>
         </div>
-
-        <!-- Chart canvas context -->
-        <div class="h-[360px] w-full relative">
+        <div class="h-[400px] w-full relative">
           <canvas id="profit-analytics-canvas"></canvas>
         </div>
       </section>
     </div>
 
-
-    <!-- VIEW D: NOTEPAD (БЛОКНОТ БАРЫГИ) -->
+    <!-- VIEW 4: NOTEPAD -->
     <div id="view-notepad" class="view-container flex-col gap-6 p-4 sm:p-6 md:p-8">
-      <section class="bg-white p-6 rounded-2xl border border-zone-border shadow-flat flex flex-col gap-4">
+      <section class="bg-white p-6 rounded-2xl border border-zone-border shadow-flat flex flex-col gap-4 h-[80vh]">
         <div class="pb-4 border-b border-zone-border/60 flex justify-between items-center">
           <div>
-            <h3 class="text-xs font-extrabold uppercase font-mono tracking-widest text-zone-darkText">Заметки перекупщика</h3>
-            <p class="text-xs text-slate-400 mt-0.5">Встроенный блокнот для сохранения ценных логов, списков скупок и планов.</p>
+            <h3 class="text-sm font-extrabold uppercase font-mono tracking-widest text-zone-darkText">Заметки барыги</h3>
+            <p class="text-xs text-slate-500 mt-1">Синхронизируются с облаком STALZONE.</p>
           </div>
-          
-          <button id="btn-save-notepad" class="bg-zone-accent hover:bg-zone-accentHover text-white px-4 py-2 rounded-xl text-xs font-bold font-mono">
+          <button onclick="saveCloudNotepad()" class="bg-zone-accent hover:bg-zone-accentHover text-white px-5 py-2.5 rounded-xl text-xs font-bold font-mono shadow-flat">
             💾 СОХРАНИТЬ В ОБЛАКО
           </button>
         </div>
-
-        <textarea id="notepad-textarea" rows="15" placeholder="Вставьте сюда сырой текст аукционных логов, черновые списки предметов или ваши личные заметки..." 
-                  class="w-full bg-zone-inputBg border border-zone-border rounded-xl p-4 text-xs font-mono text-slate-800 outline-none focus:border-zone-accent transition-all resize-y"></textarea>
-      </section>
-    </div>
-
-
-    <!-- VIEW E: ADMIN SaaS CONFIGURATION -->
-    <div id="view-admin" class="view-container flex-col gap-6 p-4 sm:p-6 md:p-8">
-      <section class="bg-white p-6 rounded-2xl border border-zone-border shadow-flat max-w-4xl w-full mx-auto">
-        <div class="flex justify-between items-center pb-4 border-b border-zone-border mb-6">
-          <div class="flex items-center gap-3">
-            <div class="p-2 rounded-xl bg-zone-orange/10 border border-zone-orange/20 text-zone-orange">
-              ⚙️
-            </div>
-            <div>
-              <h2 class="text-sm font-extrabold uppercase font-mono tracking-widest text-zone-darkText">
-                Административный пульт управления
-              </h2>
-              <p class="text-[9px] text-slate-400 font-mono uppercase">Генерация лицензий и конфигурация системы Firebase</p>
-            </div>
-          </div>
-        </div>
-
-        <!-- Вход по паролю -->
-        <div id="admin-auth-gate" class="space-y-4 max-w-sm mx-auto py-10">
-          <div>
-            <label class="block text-[9px] font-extrabold uppercase tracking-widest text-slate-400 mb-2 text-center">
-              Введите мастер-пароль администратора:
-            </label>
-            <input type="password" id="admin-pass-input" placeholder="Введите пароль..."
-                   class="w-full bg-zone-inputBg border border-zone-border rounded-xl px-4 py-3 text-center text-xs font-bold tracking-wider font-mono text-zone-orange uppercase outline-none focus:border-zone-orange transition-all">
-          </div>
-          <button onclick="verifyAdminPassword()" class="w-full bg-zone-orange hover:bg-amber-600 text-black font-extrabold text-xs py-3.5 rounded-xl uppercase tracking-widest transition-all">
-            Авторизоваться
-          </button>
-        </div>
-
-        <!-- Рабочая область админа (Скрыта до авторизации) -->
-        <div id="admin-workspace" class="hidden space-y-6">
-          
-          <!-- Настройка Firebase -->
-          <div class="bg-zone-inputBg p-5 rounded-xl border border-zone-border">
-            <h3 class="text-xs font-extrabold uppercase font-mono tracking-wider text-zone-blue mb-2">
-              🔗 1. Настройка глобальной базы Firebase
-            </h3>
-            <p class="text-[11px] text-slate-500 mb-4 leading-relaxed">
-              Конфигурация Firebase уже жестко зашита в код по умолчанию. Если вы хотите привязать этот сайт под продажу к вашему собственному проекту, введите новые учетные данные ниже:
-            </p>
-
-            <div class="space-y-4">
-              <textarea id="firebase-config-textarea" rows="4" placeholder='{ "apiKey": "AIza...", "authDomain": "...", "projectId": "..." }'
-                        class="w-full bg-white border border-zone-border rounded-xl p-3 text-[10px] font-mono text-slate-800 outline-none focus:border-zone-blue transition-all"></textarea>
-              
-              <button onclick="saveFirebaseConfigFromAdmin()" class="px-5 py-2.5 rounded-xl bg-zone-blue hover:bg-cyan-600 text-white text-xs font-extrabold uppercase tracking-widest font-mono transition-all">
-                Сохранить конфигурацию и перезапустить
-              </button>
-            </div>
-          </div>
-
-          <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
-            <!-- Генератор ключей -->
-            <div class="md:col-span-5 bg-zone-inputBg p-5 rounded-xl border border-zone-border flex flex-col justify-between">
-              <div class="space-y-4">
-                <h3 class="text-xs font-extrabold uppercase font-mono tracking-wider text-zone-orange">
-                  🔑 2. Генератор Ключей Доступа
-                </h3>
-                
-                <div>
-                  <label class="block text-[8px] font-bold uppercase tracking-wider text-slate-500 mb-1.5 font-mono">Срок действия лицензии:</label>
-                  <select id="key-days-select" class="w-full bg-white border border-zone-border rounded-xl px-3 py-2.5 text-xs font-bold font-mono text-slate-800 outline-none">
-                    <option value="1">1 День (Пробный)</option>
-                    <option value="7">7 Дней (Неделя)</option>
-                    <option value="30">30 Дней (Месяц)</option>
-                  </select>
-                </div>
-
-                <div class="bg-white p-3 rounded-lg border border-zone-border/40 font-mono">
-                  <span class="text-[8px] text-slate-400 uppercase tracking-widest font-extrabold block mb-1">Сгенерированный Ключ:</span>
-                  <div id="new-key-display" class="text-xs font-bold text-zone-radiation tracking-wider select-all cursor-pointer truncate" title="Кликните для копирования">
-                    SC-XXXX-XXXX...
-                  </div>
-                </div>
-              </div>
-
-              <button onclick="generateNewLicenseKey()" class="w-full bg-zone-orange hover:bg-amber-600 text-black font-black text-xs py-3.5 rounded-xl uppercase tracking-widest transition-all mt-4 font-mono">
-                Выпустить ключ в сеть
-              </button>
-            </div>
-
-            <!-- Таблица лицензий -->
-            <div class="md:col-span-7 bg-zone-inputBg p-5 rounded-xl border border-zone-border flex flex-col justify-between">
-              <div>
-                <div class="flex justify-between items-center mb-4 font-mono">
-                  <h3 class="text-xs font-extrabold uppercase tracking-wider text-zone-orange">
-                    📡 Активные ключи в базе
-                  </h3>
-                  <span class="text-[9px] text-slate-500 font-bold" id="key-count-display">Всего: 0</span>
-                </div>
-
-                <div class="overflow-y-auto max-h-[220px] rounded-lg border border-zone-border">
-                  <table class="w-full text-left text-[11px] font-mono bg-white">
-                    <thead>
-                      <tr class="bg-zone-inputBg text-slate-400 border-b border-zone-border uppercase text-[8px] tracking-wider font-extrabold">
-                        <th class="p-2.5">Ключ подписки</th>
-                        <th class="p-2.5">Срок</th>
-                        <th class="p-2.5">Статус</th>
-                        <th class="p-2.5 text-right">Управление</th>
-                      </tr>
-                    </thead>
-                    <tbody id="keys-tbody" class="divide-y divide-zone-border/40">
-                      <!-- Заполняется JS -->
-                    </tbody>
-                  </table>
-                  <div id="no-keys-message" class="p-8 text-center text-slate-400 uppercase tracking-widest text-[9px] font-bold">
-                    Нет активных ключей.
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- СМЕНА ПАРОЛЯ АДМИНИСТРАТОРА (НОВАЯ ФУНКЦИЯ ДЛЯ ЗАЩИТЫ) -->
-          <div class="bg-zone-inputBg p-5 rounded-xl border border-zone-border mt-4">
-            <h3 class="text-xs font-extrabold uppercase font-mono tracking-wider text-zone-red mb-2">
-              🔒 3. Безопасность пульта администратора
-            </h3>
-            <p class="text-[11px] text-slate-500 mb-4 leading-relaxed font-mono">
-              По умолчанию пароль для входа в панель администратора: <strong class="text-zone-orange">SC-ADMIN-99X</strong>. Вы можете сменить его. Новый пароль будет захеширован по алгоритму SHA-256 и сохранен в Firestore.
-            </p>
-
-            <button onclick="changeAdminPasswordOnline()" class="px-5 py-2.5 rounded-xl bg-zone-red hover:bg-red-700 text-white text-xs font-extrabold uppercase tracking-widest font-mono transition-all">
-              Сменить мастер-пароль панели
-            </button>
-          </div>
-
-        </div>
+        <textarea id="notepad-textarea" placeholder="Черновики списков скупки, мониторинг цен..." 
+                  class="w-full h-full flex-grow bg-zone-inputBg border border-zone-border rounded-xl p-5 text-sm font-mono text-slate-800 outline-none focus:border-zone-accent transition-all resize-none"></textarea>
       </section>
     </div>
 
   </main>
 
 
-  <!-- ================= TACTICAL ES6 SAAS MODULE SYSTEM ================= -->
-  <!-- ChartJS CDN for advanced charts -->
+  <!-- ================= ADMIN PANEL MODAL ================= -->
+  <div id="admin-panel" class="fixed inset-0 bg-zone-darkText/90 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="max-w-4xl w-full bg-white border-2 border-zone-accent rounded-2xl p-8 relative overflow-y-auto max-h-[90vh] shadow-premium">
+      
+      <div class="flex justify-between items-center pb-5 border-b border-zone-border mb-6">
+        <div class="flex items-center gap-4">
+          <div class="p-3 rounded-xl bg-zone-orange/10 text-zone-orange border border-zone-orange/30">⚙️</div>
+          <div>
+            <h2 class="text-base font-extrabold uppercase font-mono tracking-widest text-zone-darkText">Управление SaaS STALZONE</h2>
+            <p class="text-[10px] text-slate-500 font-mono uppercase mt-0.5">Безопасный крипто-шлюз генерации ключей</p>
+          </div>
+        </div>
+        <button onclick="closeAdminPanel()" class="bg-zone-inputBg hover:bg-slate-200 text-slate-600 px-4 py-2.5 rounded-xl transition-all font-mono text-xs font-bold">Закрыть</button>
+      </div>
+
+      <!-- Auth gate -->
+      <div id="admin-auth-gate" class="max-w-sm mx-auto py-12 space-y-4">
+        <p class="text-xs font-bold text-center text-slate-500 font-mono uppercase tracking-widest">Авторизация владельца</p>
+        <input type="password" id="admin-pass-input" placeholder="Мастер-пароль" class="w-full bg-zone-inputBg border border-zone-border rounded-xl px-4 py-3 text-center text-sm font-bold tracking-wider font-mono text-zone-darkText outline-none focus:border-zone-orange">
+        <button onclick="verifyAdminPassword()" class="w-full bg-zone-orange hover:bg-amber-600 text-white font-extrabold text-xs py-3.5 rounded-xl uppercase tracking-widest transition-all">Войти</button>
+      </div>
+
+      <!-- Workspace -->
+      <div id="admin-workspace" class="hidden space-y-8">
+        
+        <!-- Секция Firebase -->
+        <div class="bg-zone-inputBg p-6 rounded-xl border border-zone-border">
+          <div class="flex justify-between items-center mb-3">
+            <h3 class="text-xs font-extrabold uppercase font-mono tracking-wider text-zone-blue">🔗 Firebase Конфигурация</h3>
+            <button onclick="changeAdminPasswordOnline()" class="text-[9px] bg-zone-red text-white px-3 py-1.5 rounded-lg uppercase tracking-wider font-bold shadow-sm hover:bg-red-600">Сменить мастер-пароль</button>
+          </div>
+          <textarea id="firebase-config-textarea" rows="4" class="w-full bg-white border border-zone-border rounded-xl p-4 text-[10px] font-mono text-slate-600 outline-none focus:border-zone-blue transition-all mb-4"></textarea>
+          <button onclick="saveFirebaseConfigFromAdmin()" class="px-6 py-3 rounded-xl bg-zone-blue hover:bg-blue-600 text-white text-xs font-extrabold uppercase tracking-widest font-mono transition-all">Применить и перезапустить</button>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+          <!-- Генератор -->
+          <div class="md:col-span-4 bg-zone-inputBg p-6 rounded-xl border border-zone-border flex flex-col gap-4">
+            <h3 class="text-xs font-extrabold uppercase font-mono tracking-wider text-zone-orange">🔑 Генератор</h3>
+            <div>
+              <select id="key-days-select" class="w-full bg-white border border-zone-border rounded-xl px-4 py-3 text-xs font-bold font-mono text-slate-800 outline-none">
+                <option value="1">1 День (Тест)</option>
+                <option value="7">7 Дней (Неделя)</option>
+                <option value="30">30 Дней (Месяц)</option>
+              </select>
+            </div>
+            <div class="bg-white p-4 rounded-xl border border-zone-border/50 font-mono text-center">
+              <span class="text-[9px] text-slate-400 uppercase font-bold block mb-2">Новый ключ:</span>
+              <div id="new-key-display" onclick="copyToClipboard(this.innerText)" class="text-sm font-bold text-zone-accent tracking-widest cursor-pointer hover:underline">SC-XXXX...</div>
+            </div>
+            <button onclick="generateNewLicenseKey()" class="w-full bg-zone-orange hover:bg-amber-600 text-white font-black text-xs py-3.5 rounded-xl uppercase tracking-widest transition-all mt-auto">Создать</button>
+          </div>
+
+          <!-- Таблица -->
+          <div class="md:col-span-8 bg-zone-inputBg p-6 rounded-xl border border-zone-border">
+            <div class="flex justify-between items-center mb-4 font-mono">
+              <h3 class="text-xs font-extrabold uppercase tracking-wider text-zone-orange">📡 Активные Лицензии</h3>
+              <span class="text-[10px] text-slate-500 font-bold" id="key-count-display">Всего: 0</span>
+            </div>
+            <div class="overflow-y-auto max-h-[200px] bg-white rounded-xl border border-zone-border">
+              <table class="w-full text-left text-[11px] font-mono">
+                <thead>
+                  <tr class="bg-slate-50 text-slate-400 border-b border-zone-border uppercase text-[9px] tracking-wider">
+                    <th class="p-3">Ключ</th>
+                    <th class="p-3">Срок</th>
+                    <th class="p-3">Статус</th>
+                    <th class="p-3 text-right"></th>
+                  </tr>
+                </thead>
+                <tbody id="keys-tbody" class="divide-y divide-zone-border/30"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ВНЕШНИЕ СКРИПТЫ (Графики) -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+  <!-- ================= CORE ES6 LOGIC ================= -->
   <script type="module">
-    const { 
-      initializeApp, getAuth, signInAnonymously, onAuthStateChanged,
-      getFirestore, doc, setDoc, getDoc, updateDoc, collection, onSnapshot, deleteDoc 
-    } = window.FirebaseLib || {};
+    // Захват модулей Firebase из Head
+    const { initializeApp, getAuth, signInAnonymously, onAuthStateChanged, getFirestore, doc, setDoc, getDoc, updateDoc, collection, onSnapshot, deleteDoc } = window.FirebaseLib;
 
     const LOCAL_PREFIX = 'sc_market_pro_';
-    const ADMIN_DEFAULT_PASS_HASH = "8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918"; // SHA-256 Hash of SC-ADMIN-99X
     const appId = 'stalzone-market-pro';
 
-    // Вшитая конфигурация Firebase клиента (Облако STALZONE)
+    // Жестко зашитый дефолтный хеш (SC-ADMIN-99X)
+    const DEFAULT_ADMIN_HASH = "8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918";
+
     const HARDCODED_FIREBASE_CONFIG = {
       apiKey: "AIzaSyASoAF_R2hbWrcuMQbl8qGJv5E5BOMb2fE",
       authDomain: "sc-market-72b69.firebaseapp.com",
@@ -707,1193 +601,452 @@
       measurementId: "G-Q48E34WBYZ"
     };
 
-    let auth = null;
-    let db = null;
-    let currentCalculator = 'direct';
-    let currentFilter = 'all';
+    let auth = null, db = null;
+    let currentCalculator = 'direct', currentFilter = 'all';
+    let trades = [], licenseKeys = [];
+    let userSubscription = null, activeKeySession = null, licenseTimerInterval = null, isAdminAuthorized = false;
+    let analyticsChart = null;
 
-    let trades = [];
-    let licenseKeys = [];
-    let userSubscription = null;
-    let licenseTimerInterval = null;
-    let activeKeySession = null;
-    let isAdminAuthorized = false;
-    let analyticsChart = null; // Chart.js instance
+    // ГЛОБАЛЬНЫЙ ЭКСПОРТ ДЛЯ HTML (Обязательно для type="module")
+    window.switchView = switchView;
+    window.switchCalculator = switchCalculator;
+    window.calculateDirect = calculateDirect;
+    window.calculateReverse = calculateReverse;
+    window.quickSetBuy = quickSetBuy;
+    window.multiplySell = multiplySell;
+    window.activateLicense = activateLicense;
+    window.logoutLicense = logoutLicense;
+    window.addCurrentToTracker = addCurrentToTracker;
+    window.deleteTrade = deleteTrade;
+    window.updateTradeStatus = updateTradeStatus;
+    window.setFilter = setFilter;
+    window.exportTrades = exportTrades;
+    window.triggerImport = triggerImport;
+    window.importTrades = importTrades;
+    window.toggleAdminPanelDirect = toggleAdminPanelDirect;
+    window.closeAdminPanel = closeAdminPanel;
+    window.verifyAdminPassword = verifyAdminPassword;
+    window.changeAdminPasswordOnline = changeAdminPasswordOnline;
+    window.generateNewLicenseKey = generateNewLicenseKey;
+    window.deleteLicenseKey = deleteLicenseKey;
+    window.saveFirebaseConfigFromAdmin = saveFirebaseConfigFromAdmin;
+    window.saveCloudNotepad = saveCloudNotepad;
+    window.copyToClipboard = copyToClipboard;
 
-    // Всплывающие уведомления (Тосты)
-    function showToast(message, type = "info") {
-      const container = document.getElementById('toast-container');
-      const toast = document.createElement('div');
-      
-      let borderCol = "border-zone-border";
-      let bgCol = "bg-white";
-      let textCol = "text-zone-radiation text-zone-accent";
-      let icon = "⚙️";
-
-      if (type === "success") {
-        borderCol = "border-zone-accent/30";
-        textCol = "text-zone-accent";
-        icon = "✓";
-      } else if (type === "error") {
-        borderCol = "border-zone-red/30";
-        textCol = "text-zone-red";
-        icon = "⚠";
-        playSfx('error_siren');
-      } else if (type === "info") {
-        borderCol = "border-zone-blue/30";
-        textCol = "text-zone-blue";
-        icon = "📡";
-      }
-
-      toast.className = `toast-item pointer-events-auto flex items-start gap-3 p-4 rounded-xl border-2 ${borderCol} ${bgCol} text-zone-darkText shadow-premium transition-all duration-300 transform translate-y-2 opacity-0 font-mono text-xs z-50`;
-      toast.innerHTML = `
-        <div class="font-bold ${textCol} shrink-0">${icon}</div>
-        <div class="flex-grow font-semibold">${message}</div>
-      `;
-
-      container.appendChild(toast);
-      setTimeout(() => {
-        toast.classList.remove('translate-y-2', 'opacity-0');
-        toast.style.opacity = '1';
-      }, 50);
-      setTimeout(() => {
-        toast.style.opacity = '0';
-        setTimeout(() => toast.remove(), 300);
-      }, 4000);
-    }
-
-    // Лимит ожидания запроса Firestore
-    async function withTimeout(promise, timeoutMs = 8000, errorMsg = "Превышено время ожидания ответа от облака.") {
-      let timeoutHandle;
-      const timeoutPromise = new Promise((_, reject) => {
-        timeoutHandle = setTimeout(() => {
-          const err = new Error(errorMsg);
-          err.code = "timeout";
-          reject(err);
-        }, timeoutMs);
-      });
-      try {
-        return await Promise.race([promise, timeoutPromise]);
-      } finally {
-        clearTimeout(timeoutHandle);
-      }
-    }
-
-    // SHA-256 Клиентское хеширование (Защита от F12!)
+    // ХЕШИРОВАНИЕ SHA-256 (Для пароля админа)
     async function sha256(string) {
       const utf8 = new TextEncoder().encode(string);
       const hashBuffer = await crypto.subtle.digest('SHA-256', utf8);
       const hashArray = Array.from(new Uint8Array(hashBuffer));
-      const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-      return hashHex;
+      return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
     }
 
-    // ================= CUSTOM INTERACTIVE MODALS =================
-    const modalRoot = document.getElementById('custom-modal-root');
-    const modalTitle = document.getElementById('modal-title');
-    const modalDesc = document.getElementById('modal-desc');
-    const modalInputContainer = document.getElementById('modal-input-container');
-    const modalTextInput = document.getElementById('modal-text-input');
-    const modalBtnCancel = document.getElementById('modal-btn-cancel');
-    const modalBtnConfirm = document.getElementById('modal-btn-confirm');
-
-    let currentModalResolver = null;
-
-    function showCustomConfirm(title, description) {
-      return new Promise((resolve) => {
-        modalTitle.innerText = title;
-        modalDesc.innerText = description;
-        modalInputContainer.classList.add('hidden');
-        modalRoot.classList.remove('hidden');
-
-        currentModalResolver = (confirmed) => {
-          modalRoot.classList.add('hidden');
-          resolve(confirmed);
-        };
-      });
+    // ТАЙМАУТ ДЛЯ FIREBASE
+    async function withTimeout(promise, ms = 8000, msg = 'Timeout') {
+      let h; const tp = new Promise((_, r) => { h = setTimeout(() => r(new Error(msg)), ms); });
+      try { return await Promise.race([promise, tp]); } finally { clearTimeout(h); }
     }
 
-    function showCustomPrompt(title, description, defaultValue = '') {
-      return new Promise((resolve) => {
-        modalTitle.innerText = title;
-        modalDesc.innerText = description;
-        modalTextInput.value = defaultValue;
-        modalInputContainer.classList.remove('hidden');
-        modalRoot.classList.remove('hidden');
-
-        currentModalResolver = (confirmed) => {
-          modalRoot.classList.add('hidden');
-          resolve(confirmed ? modalTextInput.value.trim() : null);
-        };
-      });
+    // TOASTS
+    function showToast(message, type = "info") {
+      const c = document.getElementById('toast-container');
+      const t = document.createElement('div');
+      const cols = { success: '#114B31', error: '#FF3B30', info: '#0A84FF' };
+      const icons = { success: '✓', error: '⚠', info: '📡' };
+      t.className = `flex items-center gap-3 p-4 rounded-xl border border-zone-border bg-white text-zone-darkText shadow-premium transition-all duration-300 transform translate-y-2 opacity-0 font-mono text-xs z-50`;
+      t.innerHTML = `<strong style="color:${cols[type]}">${icons[type]}</strong><span class="font-bold">${message}</span>`;
+      c.appendChild(t);
+      setTimeout(() => t.classList.remove('translate-y-2', 'opacity-0'), 50);
+      setTimeout(() => { t.classList.add('opacity-0'); setTimeout(() => t.remove(), 300); }, 3500);
+      logEvent(message, type);
     }
 
-    modalBtnConfirm.onclick = () => {
-      if (currentModalResolver) currentModalResolver(true);
-    };
+    // ТАКТИЧЕСКИЙ ЛОГ
+    function logEvent(msg, type='info') {
+      const log = document.getElementById('terminal-event-log');
+      if(!log) return;
+      const el = document.createElement('div');
+      const time = new Date().toLocaleTimeString('ru-RU');
+      const cols = { success:'#A8FF3E', error:'#FF3B30', info:'#0A84FF', warning:'#FF9500' };
+      el.style.color = cols[type] || '#E2ECE9';
+      el.innerText = `[${time}] ${msg}`;
+      log.appendChild(el);
+      log.scrollTop = log.scrollHeight;
+    }
 
-    modalBtnCancel.onclick = () => {
-      if (currentModalResolver) currentModalResolver(false);
-    };
+    // БЕЗОПАСНЫЙ БУФЕР ОБМЕНА
+    function copyToClipboard(text) {
+      const ta = document.createElement("textarea"); ta.value = text;
+      ta.style.cssText = "position:fixed;top:0;left:0;opacity:0;";
+      document.body.appendChild(ta); ta.focus(); ta.select();
+      try { document.execCommand('copy') && showToast('Ключ скопирован!', 'success'); } catch(e){}
+      ta.remove();
+    }
 
-
-    // ================= СЕТЕВАЯ ИНИЦИАЛИЗАЦИЯ =================
+    // ИНИЦИАЛИЗАЦИЯ
     async function initSystem() {
-      let activeConfig = HARDCODED_FIREBASE_CONFIG;
-      const storedConfig = localStorage.getItem(LOCAL_PREFIX + 'firebase_config_object');
-      if (storedConfig) {
-        try {
-          activeConfig = JSON.parse(storedConfig);
-        } catch (e) {
-          console.error("Firebase config parse error", e);
-        }
-      }
+      let cfg = HARDCODED_FIREBASE_CONFIG;
+      const sc = localStorage.getItem(LOCAL_PREFIX + 'firebase_config_object');
+      if(sc){ try{ cfg = JSON.parse(sc); }catch(e){} }
 
-      const statusDot = document.getElementById('connection-status-dot');
-      const statusText = document.getElementById('connection-status-text');
-      const authErrorBanner = document.getElementById('auth-error-banner');
+      const dot = document.getElementById('connection-status-dot');
+      const txt = document.getElementById('connection-status-text');
 
       try {
-        const app = initializeApp(activeConfig);
-        auth = getAuth(app);
-        db = getFirestore(app);
+        const app = initializeApp(cfg);
+        auth = getAuth(app); db = getFirestore(app);
 
-        if (authErrorBanner) authErrorBanner.classList.add('hidden');
-
-        // Правило 3: Анонимная авторизация перед вызовами к базе
-        try {
-          await withTimeout(signInAnonymously(auth), 6000, "Превышено время ожидания авторизации. Проверьте настройки сети.");
-        } catch (authErr) {
-          console.error("Firebase auth failed:", authErr);
-          if (authErr.code === 'auth/configuration-not-found' || authErr.message.includes('configuration-not-found')) {
-            if (authErrorBanner) {
-              authErrorBanner.classList.remove('hidden');
-            }
-            statusDot.style.backgroundColor = "#FF3B30";
-            statusText.innerText = "Ошибка Auth";
-            statusText.style.color = "#FF3B30";
-            showToast("В консоли Firebase не включен Анонимный вход!", "error");
-            return; 
-          }
-          throw authErr;
-        }
-
-        onAuthStateChanged(auth, async (user) => {
+        await withTimeout(signInAnonymously(auth), 6000, "Ошибка авторизации");
+        
+        onAuthStateChanged(auth, async user => {
           if (user) {
-            statusDot.style.backgroundColor = "#114B31";
-            statusText.innerText = "Облако активно";
-            statusText.style.color = "#114B31";
+            dot.style.backgroundColor = "#114B31"; txt.innerText = "ОНЛАЙН"; txt.style.color = "#114B31";
+            logEvent("Соединение с облаком STALZONE установлено.", "success");
             await syncAndValidateKeySession();
           } else {
-            statusDot.style.backgroundColor = "#FF3B30";
-            statusText.innerText = "Нет авторизации";
             showActivationGateway();
           }
         });
-
-      } catch (err) {
-        console.error("Critical tactical terminal crash. Offline mode is disabled.", err);
-        document.getElementById('network-error-screen').classList.remove('hidden');
-        document.getElementById('activation-screen').classList.add('hidden');
-        document.getElementById('main-terminal').classList.add('hidden');
+      } catch(err) {
+        document.getElementById('auth-error-banner').classList.remove('hidden');
+        logEvent("Критическая ошибка сети: " + err.message, "error");
       }
     }
 
-    // Настройка кастомного конфига Firebase
-    window.saveFirebaseConfigFromAdmin = async function() {
-      const text = document.getElementById('firebase-config-textarea').value.trim();
-      if (!text) {
-        localStorage.removeItem(LOCAL_PREFIX + 'firebase_config_object');
-        showToast("Установлена дефолтная база данных.", "info");
-        setTimeout(() => location.reload(), 1000);
-        return;
-      }
-
-      try {
-        const parsed = JSON.parse(text);
-        if (parsed.apiKey && parsed.projectId) {
-          localStorage.setItem(LOCAL_PREFIX + 'firebase_config_object', JSON.stringify(parsed));
-          showToast("Сетевая конфигурация сохранена! Перезапуск...", "success");
-          setTimeout(() => location.reload(), 1500);
-        } else {
-          showToast("Некорректная структура JSON Firebase-проекта.", "error");
-        }
-      } catch (e) {
-        showToast("Ошибка синтаксиса JSON объекта.", "error");
-      }
-    }
-
-    // Проверка сессии в Firestore (без локальных бэкапов)
     async function syncAndValidateKeySession() {
-      const savedKey = localStorage.getItem(LOCAL_PREFIX + 'saved_license_key');
-      if (!savedKey) {
-        showActivationGateway();
-        return;
-      }
+      const k = localStorage.getItem(LOCAL_PREFIX + 'saved_license_key');
+      if(!k) { showActivationGateway(); return; }
 
       try {
-        const keyDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'license_keys', savedKey);
-        const keySnap = await withTimeout(
-          getDoc(keyDocRef), 
-          8000, 
-          "Превышено время ожидания ответа при синхронизации ключа. База данных Firestore может быть заблокирована правилами."
-        );
-
-        if (keySnap.exists()) {
-          const keyData = keySnap.data();
-
-          if (keyData.status === 'used' || keyData.status === 'active') {
-            const expiresAt = keyData.expiresAt;
-            const now = Date.now();
-
-            if (expiresAt && expiresAt > now) {
-              activeKeySession = savedKey;
-              userSubscription = keyData;
-              verifyAndOpenTerminal();
-              return;
-            }
+        const snap = await withTimeout(getDoc(doc(db, 'artifacts', appId, 'public', 'data', 'license_keys', k)), 8000);
+        if(snap.exists()){
+          const d = snap.data();
+          if((d.status === 'used' || d.status === 'active') && d.expiresAt > Date.now()){
+            activeKeySession = k; userSubscription = d;
+            unlockTerminal(); return;
           }
         }
-        
         localStorage.removeItem(LOCAL_PREFIX + 'saved_license_key');
-        showActivationGateway();
-        showToast("Сессия лицензии недействительна или была аннулирована в облаке!", "error");
-
-      } catch (err) {
-        console.error("Error validating key session:", err);
-        showToast("Ошибка: " + err.message, "error");
-        showActivationGateway();
-      }
+        showActivationGateway(); showToast("Лицензия истекла!", "error");
+      } catch(e){ showActivationGateway(); }
     }
 
-    function verifyAndOpenTerminal() {
-      if (!userSubscription || !activeKeySession) {
-        showActivationGateway();
-        return;
-      }
-
+    function unlockTerminal() {
       document.getElementById('activation-screen').classList.add('hidden');
-      const term = document.getElementById('main-terminal');
-      term.classList.remove('hidden');
-      term.style.display = 'flex';
-      term.style.flexDirection = 'column';
+      document.getElementById('main-sidebar').classList.remove('hidden');
+      document.getElementById('main-terminal').classList.remove('hidden');
+      document.getElementById('main-terminal').style.display = 'flex';
       
-      loadTrades();
-      loadCloudNotepad();
+      loadTrades(); loadCloudNotepad();
       startLicenseCountdownTicker(userSubscription.expiresAt);
-      
-      playSfx('access_granted');
-      logTerminalEvent("Успешный вход в защищенную сессию терминала STALZONE.", "success");
+      logEvent(`Авторизация успешна. Ключ: ${activeKeySession.slice(0,8)}...`, "success");
     }
 
     function showActivationGateway() {
       document.getElementById('activation-screen').classList.remove('hidden');
+      document.getElementById('main-sidebar').classList.add('hidden');
       document.getElementById('main-terminal').classList.add('hidden');
-      if (licenseTimerInterval) clearInterval(licenseTimerInterval);
     }
 
-    function startLicenseCountdownTicker(expiryTimestamp) {
-      if (licenseTimerInterval) clearInterval(licenseTimerInterval);
-
-      const displayEl = document.getElementById('license-countdown');
-      
-      const updateTicker = () => {
-        const diff = expiryTimestamp - Date.now();
-        if (diff <= 0) {
-          clearInterval(licenseTimerInterval);
-          displayEl.innerText = "ИСТЕКЛА";
-          displayEl.style.color = "#FF3B30";
-          localStorage.removeItem(LOCAL_PREFIX + 'saved_license_key');
-          showActivationGateway();
-          logTerminalEvent("Сессия подписки истекла. Доступ ограничен.", "error");
-          return;
-        }
-
-        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-
-        let countdownStr = '';
-        if (days > 0) countdownStr += `${days}д `;
-        countdownStr += `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-        
-        displayEl.innerText = countdownStr;
-
-        if (diff < (1000 * 60 * 60 * 12)) {
-          displayEl.style.color = "#FF3B30";
-          displayEl.className = "font-mono animate-pulse";
-        } else {
-          displayEl.style.color = "#114B31";
-          displayEl.className = "font-mono";
-        }
+    function startLicenseCountdownTicker(exp) {
+      if(licenseTimerInterval) clearInterval(licenseTimerInterval);
+      const el = document.getElementById('license-countdown');
+      const tick = () => {
+        const d = exp - Date.now();
+        if(d <= 0){ clearInterval(licenseTimerInterval); localStorage.removeItem(LOCAL_PREFIX+'saved_license_key'); showActivationGateway(); return; }
+        const days = Math.floor(d/86400000), h = Math.floor((d%86400000)/3600000), m = Math.floor((d%3600000)/60000), s = Math.floor((d%60000)/1000);
+        el.innerText = (days>0?days+'д ':'') + `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
       };
-
-      updateTicker();
-      licenseTimerInterval = setInterval(updateTicker, 1000);
+      tick(); licenseTimerInterval = setInterval(tick, 1000);
     }
 
-
-    // ================= АКТИВАЦИЯ КЛЮЧА И ОНЛАЙН СИНХРОНИЗАЦИЯ =================
-    window.activateLicense = async function() {
-      const keyInput = document.getElementById('license-key-input').value.trim();
-      if (!keyInput) {
-        showToast("Пожалуйста, введите лицензионный ключ!", "error");
-        return;
-      }
-
-      if (!db) {
-        showToast("Сетевые модули еще не инициализированы!", "error");
-        return;
-      }
-
-      showToast("Верификация ключа безопасности в облаке...", "info");
+    async function activateLicense() {
+      const k = document.getElementById('license-key-input').value.trim();
+      if(!k) return showToast("Введите ключ!", "error");
+      if(!db) return showToast("Нет сети!", "error");
 
       try {
-        const keyDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'license_keys', keyInput);
-        
-        // Защищаем таймаутом
-        const keySnap = await withTimeout(
-          getDoc(keyDocRef), 
-          8000, 
-          "База данных Firestore недоступна. Убедитесь, что вы создали базу Cloud Firestore в вашей консоли Firebase."
-        );
-
-        if (keySnap.exists()) {
-          const keyData = keySnap.data();
-
-          if (keyData.status === 'active') {
-            const durationDays = parseInt(keyData.days || 1, 10);
-            const expiresAt = Date.now() + (durationDays * 24 * 60 * 60 * 1000);
-
-            const updatedKeyData = {
-              status: 'used',
-              activatedAt: Date.now(),
-              expiresAt: expiresAt,
-              activatedByDevice: auth.currentUser ? auth.currentUser.uid : 'anonymous'
-            };
-
-            await withTimeout(updateDoc(keyDocRef, updatedKeyData), 8000, "Не удалось обновить статус ключа в облаке из-за сетевого сбоя.");
-
-            localStorage.setItem(LOCAL_PREFIX + 'saved_license_key', keyInput);
-            activeKeySession = keyInput;
-            userSubscription = { ...keyData, ...updatedKeyData };
-
-            verifyAndOpenTerminal();
-            showToast("Лицензия успешно активирована! Терминал разблокирован.", "success");
-            return;
-
-          } else if (keyData.status === 'used') {
-            const expiresAt = keyData.expiresAt;
-            if (expiresAt && expiresAt > Date.now()) {
-              localStorage.setItem(LOCAL_PREFIX + 'saved_license_key', keyInput);
-              activeKeySession = keyInput;
-              userSubscription = keyData;
-
-              verifyAndOpenTerminal();
-              showToast("Синхронизация профиля по активному ключу успешна!", "success");
-              return;
-            } else {
-              showToast("Срок действия этого ключа уже полностью истек!", "error");
-              return;
-            }
-          }
-        } else {
-          showToast("Введен неверный ключ! Лицензия отсутствует в базе данных.", "error");
-        }
-
-      } catch (e) {
-        console.error("Cloud license activation failed:", e);
-        showToast("Ошибка: " + e.message, "error");
-      }
+        const ref = doc(db, 'artifacts', appId, 'public', 'data', 'license_keys', k);
+        const snap = await withTimeout(getDoc(ref));
+        if(snap.exists()){
+          const d = snap.data();
+          if(d.status === 'active') {
+            const exp = Date.now() + (parseInt(d.days||1) * 86400000);
+            const upd = { status: 'used', activatedAt: Date.now(), expiresAt: exp };
+            await updateDoc(ref, upd);
+            localStorage.setItem(LOCAL_PREFIX+'saved_license_key', k);
+            activeKeySession = k; userSubscription = {...d, ...upd};
+            unlockTerminal(); showToast("Лицензия активирована!", "success");
+          } else if(d.status === 'used' && d.expiresAt > Date.now()) {
+            localStorage.setItem(LOCAL_PREFIX+'saved_license_key', k);
+            activeKeySession = k; userSubscription = d;
+            unlockTerminal(); showToast("Синхронизация профиля успешна!", "success");
+          } else showToast("Срок ключа истёк!", "error");
+        } else showToast("Ключ не найден!", "error");
+      } catch(e) { showToast("Ошибка: "+e.message, "error"); }
     }
 
-    window.logoutLicense = function() {
-      localStorage.removeItem(LOCAL_PREFIX + 'saved_license_key');
-      activeKeySession = null;
-      userSubscription = null;
-      document.getElementById('license-key-input').value = "";
+    function logoutLicense() {
+      localStorage.removeItem(LOCAL_PREFIX+'saved_license_key');
+      activeKeySession = null; userSubscription = null;
+      document.getElementById('license-key-input').value = '';
       showActivationGateway();
-      showToast("Вы вышли из учетной записи.", "info");
     }
 
 
-    // ================= КАЛЬКУЛЯТОР ФИНАНСОВ =================
-    window.switchCalculator = function(mode) {
+    // ================= НАВИГАЦИЯ (SIDEBAR) =================
+    function switchView(viewId) {
+      ['dashboard', 'reestr', 'analytics', 'notepad'].forEach(id => {
+        document.getElementById('view-'+id)?.classList.remove('active');
+        document.getElementById('nav-'+id)?.classList.remove('sidebar-active');
+        document.getElementById('nav-'+id)?.classList.add('text-slate-500');
+      });
+      document.getElementById('view-'+viewId)?.classList.add('active');
+      document.getElementById('nav-'+viewId)?.classList.add('sidebar-active');
+      document.getElementById('nav-'+viewId)?.classList.remove('text-slate-500');
+      if(viewId === 'analytics') updateAnalyticsChart();
+    }
+
+
+    // ================= КАЛЬКУЛЯТОРЫ =================
+    function switchCalculator(mode) {
       currentCalculator = mode;
-      playSfx('geiger_click');
-      
-      const tabDirect = document.getElementById('btn-tab-direct');
-      const tabReverse = document.getElementById('btn-tab-reverse');
-      const panelDirect = document.getElementById('panel-direct-calc');
-      const panelReverse = document.getElementById('panel-reverse-calc');
-
-      if (mode === 'direct') {
-        tabDirect.className = "flex-1 py-2 rounded-lg text-xs font-bold uppercase tracking-wider font-mono transition-all bg-zone-accent text-white shadow-flat";
-        tabReverse.className = "flex-1 py-2 rounded-lg text-xs font-bold uppercase tracking-wider font-mono transition-all text-slate-500 hover:text-zone-darkText";
-        panelDirect.classList.remove('hidden');
-        panelReverse.classList.add('hidden');
-        calculateDirect();
+      const dBtn=document.getElementById('btn-tab-direct'), rBtn=document.getElementById('btn-tab-reverse');
+      const pd=document.getElementById('panel-direct-calc'), pr=document.getElementById('panel-reverse-calc');
+      if(mode === 'direct'){
+        dBtn.className="flex-1 py-2.5 rounded-lg text-[11px] font-bold uppercase tracking-wider font-mono transition-all bg-zone-accent text-white shadow-flat";
+        rBtn.className="flex-1 py-2.5 rounded-lg text-[11px] font-bold uppercase tracking-wider font-mono transition-all text-slate-500 hover:text-zone-darkText";
+        pd.classList.remove('hidden'); pr.classList.add('hidden'); calculateDirect();
       } else {
-        tabReverse.className = "flex-1 py-2 rounded-lg text-xs font-bold uppercase tracking-wider font-mono transition-all bg-zone-accent text-white shadow-flat";
-        tabDirect.className = "flex-1 py-2 rounded-lg text-xs font-bold uppercase tracking-wider font-mono transition-all text-slate-500 hover:text-zone-darkText";
-        panelReverse.classList.remove('hidden');
-        panelDirect.classList.add('hidden');
-        calculateReverse();
+        rBtn.className="flex-1 py-2.5 rounded-lg text-[11px] font-bold uppercase tracking-wider font-mono transition-all bg-zone-orange text-white shadow-flat";
+        dBtn.className="flex-1 py-2.5 rounded-lg text-[11px] font-bold uppercase tracking-wider font-mono transition-all text-slate-500 hover:text-zone-darkText";
+        pr.classList.remove('hidden'); pd.classList.add('hidden'); calculateReverse();
       }
     }
 
-    function formatVal(num) {
-      return new Intl.NumberFormat('ru-RU').format(num) + ' ₽';
+    function fv(n) { return new Intl.NumberFormat('ru-RU').format(n) + ' ₽'; }
+
+    function calculateDirect() {
+      const buy = parseInt(document.getElementById('direct-buy').value)||0, sell = parseInt(document.getElementById('direct-sell').value)||0;
+      const tax = Math.round(sell*0.05), profit = (sell-tax)-buy, roi = buy>0?Math.round((profit/buy)*100):0;
+      document.getElementById('direct-res-tax').innerText = fv(tax);
+      document.getElementById('direct-res-revenue').innerText = fv(sell-tax);
+      document.getElementById('direct-res-breakeven').innerText = fv(Math.round(buy/0.95));
+      const pEl = document.getElementById('direct-res-profit');
+      pEl.innerText = (profit>0?'+':'')+fv(profit);
+      pEl.style.color = profit<0?'#FF3B30':'#114B31';
+      document.getElementById('direct-res-roi').innerText = roi+'%';
+      updateRisk(profit,roi,buy);
     }
 
-    window.calculateDirect = function() {
-      const buy = parseInt(document.getElementById('direct-buy').value, 10) || 0;
-      const sell = parseInt(document.getElementById('direct-sell').value, 10) || 0;
-
-      const tax = Math.round(sell * 0.05);
-      const revenue = sell - tax;
-      const profit = revenue - buy;
-      const breakeven = Math.round(buy / 0.95);
-      const roi = buy > 0 ? Math.round((profit / buy) * 100) : 0;
-
-      document.getElementById('direct-res-tax').innerText = formatVal(tax);
-      document.getElementById('direct-res-revenue').innerText = formatVal(revenue);
-      document.getElementById('direct-res-breakeven').innerText = formatVal(breakeven);
-      
-      const profitEl = document.getElementById('direct-res-profit');
-      profitEl.innerText = (profit > 0 ? '+' : '') + formatVal(profit);
-      profitEl.style.color = profit < 0 ? "#FF3B30" : "#114B31";
-
-      document.getElementById('direct-res-roi').innerText = `${roi}%`;
-      updateRiskAssessment(profit, roi, buy);
+    function calculateReverse() {
+      const buy = parseInt(document.getElementById('reverse-buy').value)||0, tgt = parseInt(document.getElementById('reverse-target').value)||0;
+      const sell = Math.round((buy+tgt)/0.95), tax = Math.round(sell*0.05);
+      document.getElementById('reverse-res-hand').innerText = fv(sell-tax);
+      document.getElementById('reverse-res-tax').innerText = fv(tax);
+      document.getElementById('reverse-res-sell').innerText = fv(sell);
+      updateRisk(tgt, buy>0?Math.round((tgt/buy)*100):0, buy);
     }
 
-    window.calculateReverse = function() {
-      const buy = parseInt(document.getElementById('reverse-buy').value, 10) || 0;
-      const target = parseInt(document.getElementById('reverse-target').value, 10) || 0;
+    function quickSetBuy(v) { document.getElementById('direct-buy').value=v; document.getElementById('reverse-buy').value=v; currentCalculator==='direct'?calculateDirect():calculateReverse(); }
+    function multiplySell(m) { const b=parseInt(document.getElementById('direct-buy').value)||0; if(b>0){ document.getElementById('direct-sell').value=Math.round(b*m); calculateDirect();} }
 
-      const necessarySell = Math.round((buy + target) / 0.95);
-      const tax = Math.round(necessarySell * 0.05);
-      const inHand = necessarySell - tax;
-      const roi = buy > 0 ? Math.round((target / buy) * 100) : 0;
-
-      document.getElementById('reverse-res-hand').innerText = formatVal(inHand);
-      document.getElementById('reverse-res-tax').innerText = formatVal(tax);
-      document.getElementById('reverse-res-sell').innerText = formatVal(necessarySell);
-
-      updateRiskAssessment(target, roi, buy);
-    }
-
-    window.quickSetBuy = function(val) {
-      document.getElementById('direct-buy').value = val;
-      document.getElementById('reverse-buy').value = val;
-      playSfx('geiger_click');
-      if (currentCalculator === 'direct') calculateDirect();
-      else calculateReverse();
-    }
-
-    window.multiplySell = function(multiplier) {
-      const buy = parseInt(document.getElementById('direct-buy').value, 10) || 0;
-      if (buy > 0) {
-        document.getElementById('direct-sell').value = Math.round(buy * multiplier);
-        playSfx('geiger_click');
-        calculateDirect();
-      }
-    }
-
-    function updateRiskAssessment(profit, roi, buy) {
-      const bullet = document.getElementById('risk-bullet');
-      const text = document.getElementById('risk-text');
-
-      if (buy <= 0) {
-        bullet.style.backgroundColor = "#1E2D45";
-        text.innerText = "Введите параметры...";
-        text.style.color = "#4B5B72";
-        return;
-      }
-
-      if (profit < 0) {
-        bullet.style.backgroundColor = "#FF3B30";
-        text.innerText = "Убыточная инвестиция!";
-        text.style.color = "#FF3B30";
-      } else if (roi < 15) {
-        bullet.style.backgroundColor = "#FF9500";
-        text.innerText = "Высокий риск: Окупаемость < 15%.";
-        text.style.color = "#FF9500";
-      } else if (roi >= 15 && roi < 40) {
-        bullet.style.backgroundColor = "#0A84FF";
-        text.innerText = "Стабильный флип.";
-        text.style.color = "#0A84FF";
-      } else {
-        bullet.style.backgroundColor = "#114B31";
-        text.innerText = "Безопасный флип (ROI > 40%)";
-        text.style.color = "#114B31";
-      }
+    function updateRisk(profit,roi,buy) {
+      const b=document.getElementById('risk-bullet'), t=document.getElementById('risk-text');
+      if(buy<=0){ b.style.backgroundColor='#CAD6D2'; t.innerText='Ожидание...'; t.style.color='#5A6D82'; }
+      else if(profit<0){ b.style.backgroundColor='#FF3B30'; t.innerText='Убыток!'; t.style.color='#FF3B30'; }
+      else if(roi<15){ b.style.backgroundColor='#FF9500'; t.innerText='Высокий риск'; t.style.color='#FF9500'; }
+      else if(roi<40){ b.style.backgroundColor='#0A84FF'; t.innerText='Стабильный флип'; t.style.color='#0A84FF'; }
+      else { b.style.backgroundColor='#114B31'; t.innerText='Безопасно (ROI>40%)'; t.style.color='#114B31'; }
     }
 
 
-    // ================= РЕЕСТР ЖУРНАЛА СДЕЛКАМИ =================
+    // ================= РЕЕСТР И СИНХРОНИЗАЦИЯ =================
     async function loadTrades() {
-      if (!db || !activeKeySession) return;
-
-      try {
-        const qTrades = collection(db, 'artifacts', appId, 'users', activeKeySession, 'trades');
-        
-        onSnapshot(qTrades, (snapshot) => {
-          trades = [];
-          snapshot.forEach(docSnap => {
-            trades.push({ id: docSnap.id, ...docSnap.data() });
-          });
-          renderAll();
-          updateAnalyticsChart(); // Обновляем график при любых апдейтах сделок
-        }, (err) => {
-          console.error("Cloud trades sync failed:", err);
-          showToast("Сбой облачной синхронизации сделок!", "error");
-        });
-      } catch (e) {
-        console.error("Cloud database trades initialization error", e);
-      }
+      if(!db||!activeKeySession) return;
+      onSnapshot(collection(db,'artifacts',appId,'users',activeKeySession,'trades'), snap => {
+        trades=[]; snap.forEach(d=>trades.push({id:d.id,...d.data()})); renderAll();
+      });
     }
 
-    async function saveTrades(targetTrade) {
-      if (!db || !activeKeySession) return;
-
-      try {
-        const docRef = doc(db, 'artifacts', appId, 'users', activeKeySession, 'trades', targetTrade.id);
-        await withTimeout(setDoc(docRef, targetTrade), 8000, "Превышено время сохранения сделки в облаке.");
-      } catch (e) {
-        console.error("Cloud trade write failed", e);
-        showToast("Ошибка: " + e.message, "error");
-      }
+    async function saveTrades(t) {
+      if(!db||!activeKeySession) return;
+      await setDoc(doc(db,'artifacts',appId,'users',activeKeySession,'trades',t.id), t);
     }
 
-    window.addCurrentToTracker = async function() {
-      let name = "Новый лот";
-      let buy = 0;
-      let sell = 0;
-
-      if (currentCalculator === 'direct') {
-        buy = parseInt(document.getElementById('direct-buy').value, 10) || 0;
-        sell = parseInt(document.getElementById('direct-sell').value, 10) || 0;
-      } else {
-        buy = parseInt(document.getElementById('reverse-buy').value, 10) || 0;
-        sell = parseInt(document.getElementById('reverse-res-sell').innerText.replace(/\s/g, '').replace('₽', ''), 10) || 0;
-      }
-
-      if (buy <= 0 || sell <= 0) {
-        showToast("Укажите цены покупки и продажи перед занесением в журнал!", "error");
-        return;
-      }
-
-      const userInput = await showCustomPrompt("Название предмета", "Задайте имя лота для ведения статистики:", "Редкий артефакт");
-      if (userInput === null) return;
-      name = userInput.trim() || name;
-
-      const tax = Math.round(sell * 0.05);
-      const profit = (sell - tax) - buy;
-      const roi = buy > 0 ? Math.round((profit / buy) * 100) : 0;
-
-      const newTrade = {
-        id: 't_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
-        name: name,
-        buyPrice: buy,
-        sellPrice: sell,
-        tax: tax,
-        profit: profit,
-        roi: roi,
-        status: 'listed',
-        createdAt: new Date().toLocaleDateString('ru-RU')
-      };
-
-      trades.unshift(newTrade);
-      await saveTrades(newTrade);
-      renderAll();
+    async function addCurrentToTracker() {
+      let b=0,s=0;
+      if(currentCalculator==='direct'){ b=parseInt(document.getElementById('direct-buy').value)||0; s=parseInt(document.getElementById('direct-sell').value)||0; }
+      else{ b=parseInt(document.getElementById('reverse-buy').value)||0; s=parseInt(document.getElementById('reverse-res-sell').innerText.replace(/\s|₽/g,''))||0; }
+      if(b<=0||s<=0) return showToast("Укажите цены!","error");
       
-      playSfx('cash_register');
-      showToast(`Сделка по "${name}" зарегистрирована!`, "success");
-      logTerminalEvent(`Добавлен новый лот "${name}" по цене покупки ${formatVal(buy)}.`, "info");
+      const name = prompt("Название предмета:", "Редкий лот");
+      if(!name) return;
+      const tax=Math.round(s*0.05), profit=(s-tax)-b, roi=b>0?Math.round((profit/b)*100):0;
+      const tr = { id:'t_'+Date.now(), name, buyPrice:b, sellPrice:s, tax, profit, roi, status:'listed', createdAt:new Date().toLocaleDateString('ru-RU') };
+      trades.unshift(tr); await saveTrades(tr); renderAll(); showToast("Сделка добавлена!","success"); logEvent(`Добавлен лот: ${name}`, "success");
     }
 
     function renderAll() {
-      renderStats();
-      renderTable();
-    }
+      const active=trades.filter(t=>t.status==='bought'||t.status==='listed'), listed=trades.filter(t=>t.status==='listed'), sold=trades.filter(t=>t.status==='sold');
+      document.getElementById('dashboard-total-invested').innerText=fv(active.reduce((s,t)=>s+t.buyPrice,0));
+      document.getElementById('dashboard-expected-revenue').innerText=fv(listed.reduce((s,t)=>s+(t.sellPrice-t.tax),0));
+      const tp=sold.reduce((s,t)=>s+t.profit,0), tb=sold.reduce((s,t)=>s+t.buyPrice,0);
+      document.getElementById('dashboard-total-profit').innerText=fv(tp);
+      document.getElementById('dashboard-avg-roi').innerText=(tb>0?Math.round((tp/tb)*100):0)+'%';
+      document.getElementById('dashboard-success-count').innerText=`Сделок завершено: ${sold.length}`;
 
-    function renderStats() {
-      const active = trades.filter(t => t.status === 'bought' || t.status === 'listed');
-      const listed = trades.filter(t => t.status === 'listed');
-      const sold = trades.filter(t => t.status === 'sold');
-      
-      const totalInvested = active.reduce((sum, t) => sum + t.buyPrice, 0);
-      const expectedRevenue = listed.reduce((sum, t) => sum + (t.sellPrice - t.tax), 0);
-      const totalProfit = sold.reduce((sum, t) => sum + t.profit, 0);
-
-      let avgRoi = 0;
-      if (sold.length > 0) {
-        const totalSoldBuy = sold.reduce((sum, t) => sum + t.buyPrice, 0);
-        if (totalSoldBuy > 0) {
-          avgRoi = Math.round((totalProfit / totalSoldBuy) * 100);
-        }
-      }
-
-      const formattedInvested = formatVal(totalInvested);
-      const formattedRevenue = formatVal(expectedRevenue);
-      const formattedProfit = formatVal(totalProfit);
-
-      // Обновляем метрики Dashboard
-      document.getElementById('dashboard-total-invested').innerText = formattedInvested;
-      document.getElementById('dashboard-expected-revenue').innerText = formattedRevenue;
-      document.getElementById('dashboard-total-profit').innerText = formattedProfit;
-      document.getElementById('dashboard-avg-roi').innerText = `${avgRoi}%`;
-      document.getElementById('dashboard-success-count').innerText = `Сделок завершено: ${sold.length}`;
-
-      // Зеркалируем на классические статистические карточки (если нужны для разметки)
-      document.getElementById('stat-total-invested').innerText = formattedInvested;
-      document.getElementById('stat-expected-revenue').innerText = formattedRevenue;
-      document.getElementById('stat-total-profit').innerText = formattedProfit;
-      document.getElementById('stat-avg-roi').innerText = `${avgRoi}%`;
-      document.getElementById('stat-success-count').innerText = `Сделок завершено: ${sold.length}`;
-    }
-
-    function renderTable() {
-      const tbody = document.getElementById('trades-tbody');
-      const emptyMsg = document.getElementById('no-trades-message');
-      
-      tbody.innerHTML = '';
-
-      const filtered = trades.filter(t => {
-        if (currentFilter === 'all') return true;
-        return t.status === currentFilter;
-      });
-
-      if (filtered.length === 0) {
-        emptyMsg.classList.remove('hidden');
-        return;
-      } else {
-        emptyMsg.classList.add('hidden');
-      }
-
-      filtered.forEach(trade => {
-        const row = document.createElement('tr');
-        row.className = "hover:bg-slate-50 border-b border-zone-border text-xs transition-all duration-150";
-        row.style.color = "#1B2A26";
-        
-        let statusBadge = '';
-        if (trade.status === 'bought') {
-          statusBadge = `<span class="badge badge-bought">Куплено</span>`;
-        } else if (trade.status === 'listed') {
-          statusBadge = `<span class="badge badge-listed">На ауке</span>`;
-        } else if (trade.status === 'sold') {
-          statusBadge = `<span class="badge badge-sold">Продано ✓</span>`;
-        } else if (trade.status === 'failed') {
-          statusBadge = `<span class="badge badge-failed">Убыток</span>`;
-        }
-
-        row.innerHTML = `
-          <td class="p-4 font-sans font-bold">
-            <div class="text-slate-800 text-sm font-extrabold">${trade.name}</div>
-            <div class="text-[9px] text-slate-400 font-mono mt-1">Добавлен: ${trade.createdAt}</div>
+      const tbod=document.getElementById('trades-tbody'), empty=document.getElementById('no-trades-message');
+      tbod.innerHTML='';
+      const filt=trades.filter(t=>currentFilter==='all'||t.status===currentFilter);
+      if(!filt.length) empty.classList.remove('hidden'); else empty.classList.add('hidden');
+      filt.forEach(t=>{
+        const tr=document.createElement('tr');
+        tr.className="hover:bg-slate-50 transition-all font-mono";
+        const badge = t.status==='bought'?`<span class="text-zone-blue font-bold">Куплено</span>`:t.status==='listed'?`<span class="text-zone-orange font-bold">На ауке</span>`:t.status==='sold'?`<span class="text-zone-accent font-bold">Продано ✓</span>`:`<span class="text-zone-red font-bold">Убыток</span>`;
+        tr.innerHTML=`
+          <td class="p-4"><p class="font-bold text-slate-800 text-xs font-sans">${t.name}</p><p class="text-[9px] text-slate-400 mt-1">${t.createdAt}</p></td>
+          <td class="p-4 font-bold text-slate-600">${fv(t.buyPrice)}</td>
+          <td class="p-4 font-bold text-slate-600">${fv(t.sellPrice)}</td>
+          <td class="p-4 text-zone-red">${fv(t.tax)}</td>
+          <td class="p-4"><p class="font-extrabold ${t.profit<0?'text-zone-red':'text-zone-accent'}">${t.profit>0?'+':''}${fv(t.profit)}</p><p class="text-[9px] text-slate-400 mt-1">ROI: <span class="text-zone-orange">${t.roi}%</span></p></td>
+          <td class="p-4 flex items-center gap-2 mt-2">${badge}
+            <select class="bg-zone-inputBg text-slate-600 text-[10px] rounded border border-zone-border p-1 outline-none ml-2" onchange="updateTradeStatus('${t.id}',this.value)">
+              <option value="bought" ${t.status==='bought'?'selected':''}>Куплено</option><option value="listed" ${t.status==='listed'?'selected':''}>На ауке</option><option value="sold" ${t.status==='sold'?'selected':''}>Продано</option><option value="failed" ${t.status==='failed'?'selected':''}>Убыток</option>
+            </select>
           </td>
-          <td class="p-4 font-mono font-bold text-slate-700">${formatVal(trade.buyPrice)}</td>
-          <td class="p-4 font-mono font-bold text-slate-700">${formatVal(trade.sellPrice)}</td>
-          <td class="p-4 font-mono text-zone-red font-bold">${formatVal(trade.tax)}</td>
-          <td class="p-4 font-sans">
-            <div class="font-mono font-extrabold text-sm ${trade.profit < 0 ? 'text-zone-red' : 'text-zone-accent'}">${trade.profit > 0 ? '+' : ''}${formatVal(trade.profit)}</div>
-            <div class="text-[9px] text-slate-400 mt-1 font-mono">ROI: <strong class="text-zone-orange">${trade.roi}%</strong></div>
-          </td>
-          <td class="p-4">
-            <div class="flex items-center gap-2">
-              ${statusBadge}
-              <select class="status-select select-status-element">
-                <option value="bought" ${trade.status === 'bought' ? 'selected' : ''}>Куплено</option>
-                <option value="listed" ${trade.status === 'listed' ? 'selected' : ''}>На ауке</option>
-                <option value="sold" ${trade.status === 'sold' ? 'selected' : ''}>Продано</option>
-                <option value="failed" ${trade.status === 'failed' ? 'selected' : ''}>Убыток</option>
-              </select>
-            </div>
-          </td>
-          <td class="p-4 text-right">
-            <button class="delete-btn-element text-slate-400 hover:text-zone-red transition-colors p-1" title="Удалить">
-              🗑
-            </button>
-          </td>
+          <td class="p-4 text-right"><button onclick="deleteTrade('${t.id}')" class="text-slate-400 hover:text-zone-red">🗑</button></td>
         `;
-
-        row.querySelector('.select-status-element').onchange = (e) => updateTradeStatus(trade.id, e.target.value);
-        row.querySelector('.delete-btn-element').onclick = () => deleteTrade(trade.id);
-        tbody.appendChild(row);
+        tbod.appendChild(tr);
       });
+      if(document.getElementById('view-analytics').classList.contains('active')) updateAnalyticsChart();
     }
 
-    async function updateTradeStatus(id, newStatus) {
-      const idx = trades.findIndex(t => t.id === id);
-      if (idx !== -1) {
-        const oldStatus = trades[idx].status;
-        trades[idx].status = newStatus;
-        
-        if (newStatus === 'sold') {
-          playSfx('cash_register');
-          showToast(`Лот "${trades[idx].name}" закрыт! Прибыль составила: ${formatVal(trades[idx].profit)}!`, "success");
-        } else {
-          playSfx('geiger_click');
-        }
-
-        await saveTrades(trades[idx]);
-        renderAll();
-        logTerminalEvent(`Статус лота "${trades[idx].name}" обновлен: ${oldStatus} -> ${newStatus}.`, "info");
+    async function updateTradeStatus(id, st){
+      const i=trades.findIndex(t=>t.id===id);
+      if(i!==-1){ trades[i].status=st; await saveTrades(trades[i]); renderAll(); logEvent(`Статус лота обновлен: ${st}`); }
+    }
+    async function deleteTrade(id){
+      if(confirm('Удалить сделку?')){
+        await deleteDoc(doc(db,'artifacts',appId,'users',activeKeySession,'trades',id));
+        trades=trades.filter(t=>t.id!==id); renderAll(); showToast('Удалено');
       }
     }
-
-    async function deleteTrade(id) {
-      const confirmed = await showCustomConfirm("Удаление операции", "Вы действительно хотите убрать эту сделку из торгового журнала?");
-      if (confirmed) {
-        const target = trades.find(t => t.id === id);
-        if (db && activeKeySession) {
-          try {
-            const docRef = doc(db, 'artifacts', appId, 'users', activeKeySession, 'trades', id);
-            await withTimeout(deleteDoc(docRef), 8000, "Превышено время ожидания удаления сделки.");
-          } catch (e) {
-            console.error("Cloud delete failed", e);
-            showToast("Ошибка: " + e.message, "error");
-          }
-        }
-
-        trades = trades.filter(t => t.id !== id);
-        renderAll();
-        playSfx('trash_delete');
-        showToast("Сделка аннулирована.", "info");
-        if (target) logTerminalEvent(`Сделка по лоту "${target.name}" успешно стерта из реестра.`, "warning");
-      }
-    }
-
-    window.setFilter = function(filter) {
-      currentFilter = filter;
-      playSfx('geiger_click');
-      
-      const filters = ['all', 'bought', 'listed', 'sold', 'failed'];
-      filters.forEach(f => {
-        const el = document.getElementById('filter-' + f);
-        if (f === filter) {
-          el.className = "filter-btn active";
-        } else {
-          el.className = "filter-btn";
-        }
-      });
-
+    function setFilter(f){
+      currentFilter=f;
+      ['all','bought','listed','sold','failed'].forEach(n=>document.getElementById('filter-'+n).className=`px-4 py-2 rounded-lg transition-all ${n===f?'bg-zone-accent text-white font-extrabold shadow-flat':'text-slate-500 bg-zone-inputBg hover:bg-slate-200'}`);
       renderTable();
     }
 
-    window.exportTrades = function() {
-      try {
-        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(trades, null, 2));
-        const dl = document.createElement('a');
-        dl.setAttribute("href", dataStr);
-        dl.setAttribute("download", `terminal_backup_${Date.now()}.json`);
-        document.body.appendChild(dl);
-        dl.click();
-        dl.remove();
-        showToast("Копия файла успешно сгенерирована!", "success");
-      } catch (e) {
-        showToast("Ошибка при экспорте резервной копии.", "error");
-      }
+    function exportTrades() {
+      const a=document.createElement('a'); a.href='data:text/json;charset=utf-8,'+encodeURIComponent(JSON.stringify(trades,null,2)); a.download=`stalzone_${Date.now()}.json`; a.click();
     }
-
-    window.triggerImport = function() {
-      document.getElementById('import-file').click();
-    }
-
-    window.importTrades = function(e) {
-      const file = e.target.files[0];
-      if (!file) return;
-
-      const reader = new FileReader();
-      reader.onload = async function(evt) {
-        try {
-          const parsed = JSON.parse(evt.target.result);
-          if (Array.isArray(parsed)) {
-            trades = parsed;
-            
-            for (let t of trades) {
-              await saveTrades(t);
-            }
-            
-            renderAll();
-            showToast("База данных терминала успешно импортирована!", "success");
-            logTerminalEvent("Импортирована резервная копия базы сделок.", "success");
-          } else {
-            showToast("Некорректный формат бэкап-файла.", "error");
-          }
-        } catch (err) {
-          showToast("Ошибка импорта резервной копии.", "error");
-        }
-      };
-      reader.readAsText(file);
+    function triggerImport() { document.getElementById('import-file').click(); }
+    function importTrades(e) {
+      const r=new FileReader(); r.onload=async ev=>{ try{ const p=JSON.parse(ev.target.result); if(Array.isArray(p)){ trades=p; for(let t of p) await saveTrades(t); renderAll(); showToast('Импорт успешен','success'); } }catch(er){} }; r.readAsText(e.target.files[0]);
     }
 
 
-    // ================= ОБЛАЧНЫЙ БЛОКНОТ (NOTEPAD) =================
+    // ================= БЛОКНОТ И ГРАФИКИ =================
     async function loadCloudNotepad() {
-      if (!db || !activeKeySession) return;
       try {
-        const notepadRef = doc(db, 'artifacts', appId, 'users', activeKeySession, 'notepad', 'main');
-        const snap = await getDoc(notepadRef);
-        if (snap.exists()) {
-          document.getElementById('notepad-textarea').value = snap.data().text || '';
-        }
-      } catch (e) {
-        console.error("Error reading cloud notepad", e);
-      }
+        const snap = await getDoc(doc(db,'artifacts',appId,'users',activeKeySession,'notepad','main'));
+        if(snap.exists()) document.getElementById('notepad-textarea').value = snap.data().text||'';
+      } catch(e){}
+    }
+    async function saveCloudNotepad() {
+      await setDoc(doc(db,'artifacts',appId,'users',activeKeySession,'notepad','main'), {text:document.getElementById('notepad-textarea').value, ts:Date.now()});
+      showToast('Заметки сохранены в облаке!','success'); logEvent('Блокнот синхронизирован.','success');
     }
 
-    window.saveCloudNotepad = async function() {
-      if (!db || !activeKeySession) return;
-      const text = document.getElementById('notepad-textarea').value;
-      showToast("Запись заметок в облачную базу...", "info");
-      try {
-        const notepadRef = doc(db, 'artifacts', appId, 'users', activeKeySession, 'notepad', 'main');
-        await withTimeout(setDoc(notepadRef, { text, updatedAt: Date.now() }), 8000, "Превышено время ожидания сохранения блокнота.");
-        showToast("Заметки успешно зафиксированы в облаке!", "success");
-        logTerminalEvent("Внесены изменения во встроенный облачный блокнот.", "info");
-      } catch (e) {
-        showToast("Ошибка сохранения блокнота: " + e.message, "error");
-      }
-    }
-
-    document.getElementById('btn-save-notepad').onclick = window.saveCloudNotepad;
-
-
-    // ================= ДИНАМИЧЕСКИЕ ИНТЕРАКТИВНЫЕ ГРАФИКИ (CHART.JS) =================
     function updateAnalyticsChart() {
-      const ctx = document.getElementById('profit-analytics-canvas').getContext('2d');
-      
-      // Фильтруем успешные закрытые сделки
-      const soldTrades = [...trades].filter(t => t.status === 'sold').reverse();
-      
-      const labels = soldTrades.map(t => t.name.length > 15 ? t.name.slice(0, 15) + "..." : t.name);
-      const dataProfit = soldTrades.map(t => t.profit);
-      const dataCumulativeProfit = [];
-      
-      let runningSum = 0;
-      soldTrades.forEach(t => {
-        runningSum += t.profit;
-        dataCumulativeProfit.push(runningSum);
-      });
-
-      if (analyticsChart) {
-        analyticsChart.destroy();
-      }
-
-      analyticsChart = new Chart(ctx, {
+      const ctx = document.getElementById('profit-analytics-canvas');
+      if(!ctx) return;
+      const sold = [...trades].filter(t=>t.status==='sold').reverse();
+      const labels = sold.map(t=>t.name.slice(0,10)+ (t.name.length>10?'..':''));
+      let sum=0; const data = sold.map(t=>{sum+=t.profit; return sum;});
+      if(analyticsChart) analyticsChart.destroy();
+      analyticsChart = new Chart(ctx.getContext('2d'), {
         type: 'line',
-        data: {
-          labels: labels.length ? labels : ["Нет сделок"],
-          datasets: [
-            {
-              label: 'Суммарная чистая прибыль (₽)',
-              data: dataCumulativeProfit.length ? dataCumulativeProfit : [0],
-              borderColor: '#114B31',
-              backgroundColor: 'rgba(17, 75, 49, 0.1)',
-              borderWidth: 3,
-              tension: 0.3,
-              fill: true
-            },
-            {
-              label: 'Маржа конкретной сделки (₽)',
-              data: dataProfit.length ? dataProfit : [0],
-              borderColor: '#0A84FF',
-              backgroundColor: 'rgba(10, 132, 255, 0.05)',
-              borderWidth: 2,
-              tension: 0.3,
-              borderDash: [5, 5],
-              fill: false
-            }
-          ]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: {
-              labels: {
-                font: { family: 'Inter', size: 11, weight: '600' },
-                color: '#1B2A26'
-              }
-            }
-          },
-          scales: {
-            x: {
-              grid: { color: 'rgba(39, 53, 79, 0.05)' },
-              ticks: { font: { family: 'Fira Code', size: 9 }, color: '#5A6D82' }
-            },
-            y: {
-              grid: { color: 'rgba(39, 53, 79, 0.05)' },
-              ticks: { font: { family: 'Fira Code', size: 10 }, color: '#5A6D82' }
-            }
-          }
-        }
+        data: { labels:labels.length?labels:['Нет сделок'], datasets:[{ label:'Накопительная прибыль (₽)', data:data.length?data:[0], borderColor:'#114B31', backgroundColor:'rgba(17,75,49,0.1)', borderWidth:3, fill:true, tension:0.3 }] },
+        options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{labels:{font:{family:'Inter'}}}}, scales:{x:{grid:{display:false}},y:{ticks:{font:{family:'Fira Code'}}}} }
       });
     }
 
 
-    // ================= АДМИН-ПАНЕЛЬ И ОБЛАЧНЫЙ ГЕНЕРАТОР КЛЮЧЕЙ =================
-    window.toggleAdminPanelDirect = function() {
-      playSfx('geiger_click');
+    // ================= ADMIN ПАНЕЛЬ =================
+    function toggleAdminPanelDirect() {
       document.getElementById('admin-panel').classList.remove('hidden');
+      if(isAdminAuthorized){ document.getElementById('admin-auth-gate').classList.add('hidden'); document.getElementById('admin-workspace').classList.remove('hidden'); loadAllLicenseKeys(); }
+      else { document.getElementById('admin-auth-gate').classList.remove('hidden'); document.getElementById('admin-workspace').classList.add('hidden'); }
+    }
+    function closeAdminPanel() { document.getElementById('admin-panel').classList.add('hidden'); }
+
+    async function verifyAdminPassword() {
+      const pass = document.getElementById('admin-pass-input').value.trim();
+      if(!pass) return;
+      const ref = doc(db, 'artifacts', appId, 'public', 'data', 'admin', 'config');
+      let snap = await getDoc(ref);
+      let correctHash = DEFAULT_ADMIN_HASH;
+      if(!snap.exists()) await setDoc(ref, { passwordHash: correctHash }); else correctHash = snap.data().passwordHash || correctHash;
       
-      if (isAdminAuthorized) {
+      const enteredHash = await sha256(pass);
+      if(enteredHash === correctHash) {
+        isAdminAuthorized=true;
         document.getElementById('admin-auth-gate').classList.add('hidden');
         document.getElementById('admin-workspace').classList.remove('hidden');
-        loadAllLicenseKeys();
-      } else {
-        document.getElementById('admin-auth-gate').classList.remove('hidden');
-        document.getElementById('admin-workspace').classList.add('hidden');
-      }
+        const s = localStorage.getItem(LOCAL_PREFIX+'firebase_config_object');
+        document.getElementById('firebase-config-textarea').value = s?JSON.stringify(JSON.parse(s),null,2):JSON.stringify(HARDCODED_FIREBASE_CONFIG,null,2);
+        showToast('Вход выполнен!','success'); loadAllLicenseKeys();
+      } else showToast('Неверный пароль!','error');
     }
 
-    window.closeAdminPanel = function() {
-      playSfx('geiger_click');
-      document.getElementById('admin-panel').classList.add('hidden');
+    async function changeAdminPasswordOnline() {
+      const n1 = prompt("Новый мастер-пароль:"); if(!n1) return;
+      const n2 = prompt("Повторите пароль:"); if(n1!==n2) return showToast("Пароли не совпадают!","error");
+      const hash = await sha256(n1);
+      await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'admin', 'config'), { passwordHash: hash });
+      showToast("Пароль успешно изменен!","success");
     }
 
-    window.verifyAdminPassword = async function() {
-      const pass = document.getElementById('admin-pass-input').value.trim();
-      showToast("Авторизация в облачном узле...", "info");
-      
-      try {
-        const configRef = doc(db, 'artifacts', appId, 'public', 'data', 'admin', 'config');
-        let configSnap = await getDoc(configRef);
-        
-        let correctPasswordHash = ADMIN_DEFAULT_PASS_HASH;
-        if (!configSnap.exists()) {
-          await setDoc(configRef, { passwordHash: ADMIN_DEFAULT_PASS_HASH });
-        } else {
-          correctPasswordHash = configSnap.data().passwordHash || ADMIN_DEFAULT_PASS_HASH;
-        }
-
-        const enteredHash = await sha256(pass);
-
-        if (enteredHash === correctPasswordHash) {
-          isAdminAuthorized = true;
-          document.getElementById('admin-auth-gate').classList.add('hidden');
-          document.getElementById('admin-workspace').classList.remove('hidden');
-          
-          const s = localStorage.getItem(LOCAL_PREFIX + 'firebase_config_object');
-          document.getElementById('firebase-config-textarea').value = JSON.stringify(s ? JSON.parse(s) : HARDCODED_FIREBASE_CONFIG, null, 2);
-
-          playSfx('access_granted');
-          showToast("Успешный вход в тактическую панель управления!", "success");
-          loadAllLicenseKeys();
-        } else {
-          showToast("Ошибка авторизации! Мастер-пароль не совпадает.", "error");
-        }
-      } catch (err) {
-        showToast("Ошибка проверки пароля: " + err.message, "error");
-      }
-    }
-
-    window.changeAdminPasswordOnline = async function() {
-      const newPass = await showCustomPrompt("Смена пароля", "Введите новый мастер-пароль администратора:");
-      if (!newPass) return;
-
-      const confirmPass = await showCustomPrompt("Смена пароля", "Повторите новый мастер-пароль:");
-      if (newPass !== confirmPass) {
-        showToast("Пароли не совпадают!", "error");
-        return;
-      }
-
-      showToast("Запись нового защищенного пароля в облако...", "info");
-      try {
-        const passHash = await sha256(newPass);
-        const configRef = doc(db, 'artifacts', appId, 'public', 'data', 'admin', 'config');
-        await withTimeout(setDoc(configRef, { passwordHash: passHash }), 8000, "Превышено время ожидания записи пароля.");
-        showToast("Мастер-пароль администратора успешно изменен!", "success");
-        logTerminalEvent("Пароль администратора изменен в облаке.", "warning");
-      } catch (e) {
-        showToast("Ошибка смены пароля: " + e.message, "error");
-      }
+    async function saveFirebaseConfigFromAdmin() {
+      const val = document.getElementById('firebase-config-textarea').value;
+      if(!val){ localStorage.removeItem(LOCAL_PREFIX+'firebase_config_object'); location.reload(); return; }
+      try { JSON.parse(val); localStorage.setItem(LOCAL_PREFIX+'firebase_config_object', val); location.reload(); } catch(e){ showToast('Некорректный JSON','error'); }
     }
 
     async function loadAllLicenseKeys() {
-      const tbody = document.getElementById('keys-tbody');
-      tbody.innerHTML = '';
-
-      if (!db) return;
-
-      try {
-        const qKeys = collection(db, 'artifacts', appId, 'public', 'data', 'license_keys');
-        
-        onSnapshot(qKeys, (snapshot) => {
-          licenseKeys = [];
-          snapshot.forEach(docSnap => {
-            licenseKeys.push({ key: docSnap.id, ...docSnap.data() });
-          });
-          renderKeysTable();
-        }, (err) => {
-          console.warn("Could not sync cloud keys:", err);
-          showToast("Ошибка загрузки ключей из облака!", "error");
+      if(!db) return;
+      onSnapshot(collection(db,'artifacts',appId,'public','data','license_keys'), snap => {
+        licenseKeys=[]; snap.forEach(d=>licenseKeys.push({key:d.id,...d.data()}));
+        const tbody=document.getElementById('keys-tbody'); tbody.innerHTML='';
+        document.getElementById('key-count-display').innerText=`Всего: ${licenseKeys.length}`;
+        licenseKeys.forEach(k => {
+          const tr=document.createElement('tr');
+          tr.className="border-b border-zone-border/30 hover:bg-slate-100 transition-all";
+          tr.innerHTML=`
+            <td class="p-3 font-bold text-zone-orange cursor-pointer hover:underline" onclick="copyToClipboard('${k.key}')">${k.key}</td>
+            <td class="p-3 text-slate-500">${k.days}д</td>
+            <td class="p-3 ${k.status==='active'?'text-zone-accent font-bold':'text-slate-400'}">${k.status==='active'?'Доступен':'Использован'}</td>
+            <td class="p-3 text-right"><button onclick="deleteLicenseKey('${k.key}')" class="text-slate-400 hover:text-zone-red">Удалить</button></td>
+          `; tbody.appendChild(tr);
         });
-      } catch (e) {
-        console.error("Cloud keys loader error", e);
-      }
-    }
-
-    function renderKeysTable() {
-      const tbody = document.getElementById('keys-tbody');
-      const emptyMsg = document.getElementById('no-keys-message');
-      
-      tbody.innerHTML = '';
-      document.getElementById('key-count-display').innerText = `Всего: ${licenseKeys.length}`;
-
-      if (licenseKeys.length === 0) {
-        emptyMsg.classList.remove('hidden');
-        return;
-      } else {
-        emptyMsg.classList.add('hidden');
-      }
-
-      licenseKeys.forEach(k => {
-        const row = document.createElement('tr');
-        row.style.borderBottom = "1px solid #141E2E";
-        row.style.fontSize = "10px";
-        row.style.fontFamily = "'Fira Code', monospace";
-        row.className = "hover:bg-slate-100";
-        
-        const stateBadge = k.status === 'active' 
-          ? `<span style="color:#114B31;font-weight:800;">Активен</span>` 
-          : `<span style="color:#C0D0E0;font-weight:700;">Использован</span>`;
-
-        row.innerHTML = `
-          <td style="padding:8px 12px;color:#FF9500;font-weight:700;cursor:pointer;" class="key-item-td">
-            ${k.key}
-          </td>
-          <td style="padding:8px 12px;color:#1B2A26;">${k.days}д</td>
-          <td style="padding:8px 12px;">${stateBadge}</td>
-          <td style="padding:8px 12px;text-align:right;">
-            <button class="delete-key-btn" style="color:#FF3B30;font-size:10px;font-family:'Fira Code',monospace;font-weight:700;background:none;border:none;cursor:pointer;text-transform:uppercase;letter-spacing:0.05em;transition:color 0.15s;">
-              Удалить
-            </button>
-          </td>
-        `;
-        row.querySelector('.key-item-td').onclick = () => copyToClipboard(k.key);
-        row.querySelector('.delete-key-btn').onclick = () => window.deleteLicenseKey(k.key);
-        tbody.appendChild(row);
       });
     }
 
-    window.generateNewLicenseKey = async function() {
-      const days = parseInt(document.getElementById('key-days-select').value, 10) || 1;
-      const pool = "ABCDEFGHJKLMNOPQRSTUVWXYZ23456789";
-      const genPart = (len) => Array.from({length: len}, () => pool[Math.floor(Math.random() * pool.length)]).join('');
-      
-      const keyString = `SC-D${days}-${genPart(4)}-${genPart(4)}-${genPart(4)}`;
-
-      const newKeyObj = {
-        days: days,
-        status: 'active',
-        createdAt: Date.now()
-      };
-
-      if (!db) return;
-
-      try {
-        const keyDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'license_keys', keyString);
-        await withTimeout(setDoc(keyDocRef, newKeyObj), 8000, "Превышено время ожидания записи ключа в облако.");
-        
-        document.getElementById('new-key-display').innerText = keyString;
-        showToast("Новый ключ успешно выпущен и добавлен в общую базу!", "success");
-        playSfx('cash_register');
-        loadAllLicenseKeys();
-        logTerminalEvent(`Администратор сгенерировал новый ключ лицензии на ${days}д.`, "success");
-      } catch (e) {
-        console.error("Cloud keys register fail", e);
-        showToast("Ошибка: " + e.message, "error");
-      }
+    async function generateNewLicenseKey() {
+      const days = parseInt(document.getElementById('key-days-select').value)||1;
+      const p="ABCDEFGHJKLMNOPQRSTUVWXYZ23456789", gen=n=>Array.from({length:n},()=>p[Math.floor(Math.random()*p.length)]).join('');
+      const key=`SC-D${days}-${gen(4)}-${gen(4)}-${gen(4)}`;
+      await setDoc(doc(db,'artifacts',appId,'public','data','license_keys',key), {days, status:'active', createdAt:Date.now()});
+      document.getElementById('new-key-display').innerText=key; showToast('Ключ готов!','success');
     }
 
-    window.deleteLicenseKey = async function(keyString) {
-      if (!confirm(`Удалить лицензионный ключ ${keyString}?`)) return;
-
-      try {
-        const keyDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'license_keys', keyString);
-        await withTimeout(deleteDoc(keyDocRef), 8000, "Превышено время ожидания удаления ключа.");
-        
-        showToast("Ключ удален из системы доступа.", "info");
-        playSfx('trash_delete');
-        loadAllLicenseKeys();
-        logTerminalEvent(`Аннулирован ключ доступа ${keyString.slice(0, 12)}...`, "warning");
-      } catch (e) {
-        console.error("Cloud delete fail", e);
-        showToast("Ошибка: " + e.message, "error");
-      }
+    async function deleteLicenseKey(key) {
+      if(confirm('Удалить ключ '+key+'?')){ await deleteDoc(doc(db,'artifacts',appId,'public','data','license_keys',key)); showToast('Ключ удален','info'); }
     }
 
-
-    // ================= МЕНЮ СЛЕВА И НАВИГАЦИЯ МЕЖДУ VIEW =================
-    window.switchView = function(viewId) {
-      playSfx('geiger_click');
-      
-      // Скрываем все контейнеры
-      const containers = ['dashboard', 'reestr', 'analytics', 'notepad', 'admin'];
-      containers.forEach(id => {
-        const el = document.getElementById('view-' + id);
-        if (el) el.classList.remove('active');
-        
-        const navBtn = document.getElementById('nav-' + id);
-        if (navBtn) {
-          navBtn.className = "w-full py-3 rounded-xl flex flex-col items-center justify-center text-slate-500 hover:text-zone-accent transition-all text-xs font-bold";
-        }
-      });
-
-      // Показываем нужный
-      const activeContainer = document.getElementById('view-' + viewId);
-      if (activeContainer) {
-        activeContainer.classList.add('active');
-        activeContainer.style.display = 'flex';
-        activeContainer.style.flexDirection = 'column';
-      }
-
-      const activeNav = document.getElementById('nav-' + viewId);
-      if (activeNav) {
-        activeNav.className = "sidebar-active w-full py-3 rounded-xl flex flex-col items-center justify-center transition-all text-xs font-bold";
-      }
-
-      // Дополнительная инициализация для графиков
-      if (viewId === 'analytics') {
-        setTimeout(updateAnalyticsChart, 50);
-      }
-    }
-
-    // Тактический логгер событий
-    function logTerminalEvent(text, type = "info") {
-      const logger = document.getElementById('terminal-event-log');
-      if (!logger) return;
-
-      const entry = document.createElement('div');
-      const time = new Date().toLocaleTimeString('ru-RU');
-      
-      let colorClass = "text-slate-500";
-      if (type === "success") colorClass = "text-zone-radiation text-zone-accent font-bold";
-      else if (type === "error") colorClass = "text-zone-red font-bold";
-      else if (type === "warning") colorClass = "text-zone-orange font-bold";
-      else if (type === "info") colorClass = "text-zone-blue";
-
-      entry.className = colorClass;
-      entry.innerText = `[${time}] ${text}`;
-      
-      logger.appendChild(entry);
-      logger.scrollTop = logger.scrollHeight;
-    }
-
-
-    // Инициализация при загрузке DOM-структуры и скриптов Firebase
-    window.onFirebaseLoaded = function() {
-      initSystem();
-    };
-
-    if (window.FirebaseLib) {
-      initSystem();
-    }
+    window.onFirebaseLoaded = initSystem;
   </script>
 </body>
 </html>
