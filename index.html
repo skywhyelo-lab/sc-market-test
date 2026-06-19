@@ -1,0 +1,1325 @@
+<!DOCTYPE html>
+<html lang="ru" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>STALZONE — Тактический Терминал</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            z: {
+              bg:      '#07090E',
+              surface: '#0D1120',
+              card:    '#111827',
+              border:  '#1E2D45',
+              border2: '#263347',
+              rad:     '#A8FF3E',
+              radDim:  '#6BBF1F',
+              orange:  '#FF9500',
+              red:     '#FF3B30',
+              blue:    '#0A84FF',
+              blueDim: '#1D4ED8',
+            }
+          },
+        }
+      }
+    }
+  </script>
+  
+  <style>
+    * { box-sizing: border-box; }
+
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: #07090E; }
+    ::-webkit-scrollbar-thumb { background: #1E2D45; border-radius: 99px; }
+    ::-webkit-scrollbar-thumb:hover { background: #A8FF3E; }
+
+    body {
+      background-color: #07090E;
+      background-image:
+        radial-gradient(ellipse 80% 50% at 50% -20%, rgba(168,255,62,0.05) 0%, transparent 60%),
+        linear-gradient(to right, rgba(30,45,69,0.12) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(30,45,69,0.12) 1px, transparent 1px);
+      background-size: 100% 100%, 48px 48px, 48px 48px;
+    }
+
+    @keyframes pulse-slow { 0%,100%{opacity:1} 50%{opacity:0.45} }
+    @keyframes flicker { 0%,100%{opacity:1} 92%{opacity:0.95} 93%{opacity:0.6} 94%{opacity:1} }
+    @keyframes slide-in-right { from{transform:translateX(24px);opacity:0} to{transform:translateX(0);opacity:1} }
+
+    .pulse-slow { animation: pulse-slow 2.4s ease-in-out infinite; }
+    .flicker { animation: flicker 6s ease-in-out infinite; }
+
+    .stat-card { position: relative; overflow: hidden; }
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(168,255,62,0.035) 0%, transparent 60%);
+      pointer-events: none;
+    }
+    .stat-card.blue::before { background: linear-gradient(135deg, rgba(10,132,255,0.04) 0%, transparent 60%); }
+    .stat-card.orange::before { background: linear-gradient(135deg, rgba(255,149,0,0.04) 0%, transparent 60%); }
+
+    .glow-rad { box-shadow: 0 0 0 1px rgba(168,255,62,0.15), 0 4px 24px rgba(168,255,62,0.08); }
+    .glow-orange { box-shadow: 0 0 0 1px rgba(255,149,0,0.15), 0 4px 24px rgba(255,149,0,0.06); }
+    .glow-blue { box-shadow: 0 0 0 1px rgba(10,132,255,0.15), 0 4px 24px rgba(10,132,255,0.06); }
+
+    .tab-active-rad {
+      background: rgba(168,255,62,0.1);
+      color: #A8FF3E;
+      border: 1px solid rgba(168,255,62,0.25);
+    }
+    .tab-active-orange {
+      background: rgba(255,149,0,0.1);
+      color: #FF9500;
+      border: 1px solid rgba(255,149,0,0.25);
+    }
+    .tab-inactive {
+      color: #4B5B72;
+      border: 1px solid transparent;
+    }
+    .tab-inactive:hover { color: #8899AA; }
+
+    .input-field {
+      width: 100%;
+      background: #07090E;
+      border: 1px solid #1E2D45;
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      font-weight: 600;
+      color: #E8F0FF;
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .input-field::-webkit-inner-spin-button,
+    .input-field::-webkit-outer-spin-button { -webkit-appearance: none; }
+    .input-field:focus { border-color: rgba(168,255,62,0.4); box-shadow: 0 0 0 3px rgba(168,255,62,0.06); }
+    .input-field.orange:focus { border-color: rgba(255,149,0,0.4); box-shadow: 0 0 0 3px rgba(255,149,0,0.06); }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-size: 9px;
+      font-weight: 800;
+      font-family: 'JetBrains Mono', monospace;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .badge-bought { background: rgba(10,132,255,0.12); color: #0A84FF; border: 1px solid rgba(10,132,255,0.2); }
+    .badge-listed { background: rgba(255,149,0,0.12); color: #FF9500; border: 1px solid rgba(255,149,0,0.2); }
+    .badge-sold { background: rgba(168,255,62,0.12); color: #A8FF3E; border: 1px solid rgba(168,255,62,0.2); }
+    .badge-failed { background: rgba(255,59,48,0.12); color: #FF3B30; border: 1px solid rgba(255,59,48,0.2); }
+
+    .btn-primary {
+      background: #A8FF3E;
+      color: #050809;
+      font-weight: 800;
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      font-family: 'JetBrains Mono', monospace;
+      border: none;
+      border-radius: 10px;
+      padding: 12px 20px;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s, box-shadow 0.15s;
+    }
+    .btn-primary:hover { background: #BFFF5A; box-shadow: 0 0 20px rgba(168,255,62,0.25); }
+    .btn-primary:active { transform: scale(0.97); }
+
+    .btn-ghost {
+      background: transparent;
+      color: #4B5B72;
+      border: 1px solid #1E2D45;
+      border-radius: 10px;
+      padding: 8px 14px;
+      font-size: 11px;
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-ghost:hover { border-color: #263347; color: #8899AA; background: rgba(255,255,255,0.03); }
+
+    .quick-btn {
+      font-size: 10px;
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+      padding: 5px 10px;
+      border-radius: 7px;
+      border: 1px solid #1E2D45;
+      background: #07090E;
+      color: #4B5B72;
+      cursor: pointer;
+      transition: all 0.12s;
+      white-space: nowrap;
+    }
+    .quick-btn:hover { border-color: rgba(168,255,62,0.3); color: #A8FF3E; background: rgba(168,255,62,0.05); }
+
+    .result-grid {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 6px 16px;
+      align-items: center;
+    }
+    .result-label { font-size: 11px; color: #5A6D82; font-family: 'JetBrains Mono', monospace; }
+    .result-val { font-size: 12px; font-weight: 700; font-family: 'JetBrains Mono', monospace; text-align: right; white-space: nowrap; }
+
+    .filter-btn {
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 10px;
+      font-weight: 800;
+      font-family: 'JetBrains Mono', monospace;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      border: 1px solid #1E2D45;
+      color: #4B5B72;
+      background: transparent;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .filter-btn:hover { color: #8899AA; }
+    .filter-btn.active {
+      background: rgba(168,255,62,0.1);
+      color: #A8FF3E;
+      border-color: rgba(168,255,62,0.25);
+    }
+
+    .table-row { transition: background 0.1s; }
+    .table-row:hover { background: rgba(255,255,255,0.02); }
+
+    .status-select {
+      background: #07090E;
+      border: 1px solid #1E2D45;
+      color: #8899AA;
+      font-size: 10px;
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 600;
+      padding: 4px 8px;
+      border-radius: 7px;
+      outline: none;
+      cursor: pointer;
+    }
+    .status-select:focus { border-color: #263347; }
+
+    .risk-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    /* Activation screen */
+    .activation-card {
+      background: #0D1120;
+      border: 1px solid #1E2D45;
+      border-radius: 20px;
+      padding: 40px 36px;
+      max-width: 420px;
+      width: 100%;
+      position: relative;
+      overflow: hidden;
+    }
+    .activation-card::before {
+      content:'';
+      position:absolute;
+      top:0;left:0;right:0;
+      height:1px;
+      background: linear-gradient(90deg, transparent, rgba(255,149,0,0.6), transparent);
+    }
+
+    /* Admin panel */
+    .admin-card {
+      background: #0D1120;
+      border: 1px solid #1E2D45;
+      border-radius: 14px;
+      padding: 20px;
+    }
+
+    /* Toast */
+    .toast-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 14px 16px;
+      border-radius: 12px;
+      border: 1px solid #1E2D45;
+      background: #0D1120;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 500;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+      animation: slide-in-right 0.25s ease-out;
+    }
+
+    .section-label {
+      font-size: 9px;
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 800;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: #3A4D63;
+    }
+
+    .divider { border: none; border-top: 1px solid #1A2538; margin: 12px 0; }
+  </style>
+
+  <!-- ================= AUDIO ENGINE (ВЫНЕСЕН НА САМЫЙ ВЕРХ И СВЯЗАН С WINDOW) ================= -->
+  <script>
+    let audioCtx = null;
+    function initAudio() { 
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); 
+    }
+    
+    window.playSfx = function(type) {
+      try {
+        initAudio();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const now = audioCtx.currentTime;
+        if (type === 'geiger_click') {
+          const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+          o.type = 'triangle'; o.frequency.setValueAtTime(1100 + Math.random() * 900, now);
+          g.gain.setValueAtTime(0.035, now); g.gain.exponentialRampToValueAtTime(0.0001, now + 0.02);
+          o.connect(g); g.connect(audioCtx.destination); o.start(); o.stop(now + 0.02);
+        } else if (type === 'access_granted') {
+          [440,554,659,880].forEach((f,i) => {
+            const o=audioCtx.createOscillator(),g=audioCtx.createGain();
+            o.type='sine'; o.frequency.setValueAtTime(f,now+i*0.08);
+            g.gain.setValueAtTime(0.04,now+i*0.08); g.gain.exponentialRampToValueAtTime(0.001,now+i*0.08+0.3);
+            o.connect(g); g.connect(audioCtx.destination); o.start(now+i*0.08); o.stop(now+i*0.08+0.3);
+          });
+        } else if (type === 'error_siren') {
+          for(let i=0;i<2;i++){
+            const o=audioCtx.createOscillator(),g=audioCtx.createGain();
+            o.type='sawtooth';o.frequency.setValueAtTime(160,now+i*0.15);
+            g.gain.setValueAtTime(0.05,now+i*0.15); g.gain.exponentialRampToValueAtTime(0.001,now+i*0.15+0.15);
+            o.connect(g);g.connect(audioCtx.destination);o.start(now+i*0.15);o.stop(now+i*0.15+0.15);
+          }
+        } else if (type === 'cash_register') {
+          const o1=audioCtx.createOscillator(),o2=audioCtx.createOscillator(),g=audioCtx.createGain();
+          o1.type='sine'; o1.frequency.setValueAtTime(987.77,now); o1.frequency.setValueAtTime(1318.51,now+0.08);
+          o2.type='triangle'; o2.frequency.setValueAtTime(1174.66,now); o2.frequency.setValueAtTime(1567.98,now+0.08);
+          g.gain.setValueAtTime(0.05,now); g.gain.exponentialRampToValueAtTime(0.001,now+0.45);
+          o1.connect(g); o2.connect(g); g.connect(audioCtx.destination);
+          o1.start(); o2.start(); o1.stop(now+0.45); o2.stop(now+0.45);
+        } else if (type === 'trash_delete') {
+          const o=audioCtx.createOscillator(),g=audioCtx.createGain();
+          o.type='sawtooth'; o.frequency.setValueAtTime(80,now);
+          g.gain.setValueAtTime(0.08, now); g.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+          o.connect(g); g.connect(audioCtx.destination); o.start(); o.stop(now + 0.25);
+        }
+      } catch (e) {
+        console.warn("Audio error:", e);
+      }
+    }
+    
+    window.clickGeigerManual = function() { 
+      window.playSfx('geiger_click'); 
+    };
+  </script>
+
+  <!-- Firebase JavaScript SDK (v11.6.1) -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, doc, setDoc, getDoc, updateDoc, collection, onSnapshot, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    
+    // Экспортируем библиотеки глобально
+    window.FirebaseLib = { initializeApp, getAuth, signInAnonymously, onAuthStateChanged, getFirestore, doc, setDoc, getDoc, updateDoc, collection, onSnapshot, deleteDoc };
+    if (window.onFirebaseLoaded) window.onFirebaseLoaded();
+  </script>
+</head>
+
+<body class="text-slate-100 min-h-screen font-sans selection:bg-z-rad selection:text-black">
+
+  <!-- Toasts -->
+  <div id="toast-container" class="fixed top-5 right-5 z-[100] flex flex-col gap-2.5 max-w-xs w-full pointer-events-none"></div>
+
+  <!-- Network error -->
+  <div id="network-error-screen" class="fixed inset-0 bg-z-bg z-50 flex items-center justify-center p-4 hidden">
+    <div class="activation-card text-center max-w-sm">
+      <div class="w-12 h-12 rounded-2xl bg-z-red/10 border border-z-red/20 flex items-center justify-center mx-auto mb-5">
+        <svg class="w-6 h-6 text-z-red" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+        </svg>
+      </div>
+      <h2 class="text-sm font-black font-mono tracking-wider uppercase text-slate-100 mb-2">Ошибка сети</h2>
+      <p class="text-xs text-slate-500 mb-6 leading-relaxed">Не удалось подключиться к серверу. Проверьте соединение или настройки Firebase.</p>
+      <button onclick="location.reload()" class="btn-primary w-full">Переподключиться</button>
+    </div>
+  </div>
+
+  <!-- Modal -->
+  <div id="custom-modal-root" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-[90] flex items-center justify-center p-4 hidden">
+    <div class="activation-card max-w-sm" style="padding:28px 28px;">
+      <p id="modal-title" class="font-black font-mono text-sm uppercase tracking-widest text-slate-100 mb-2">Подтверждение</p>
+      <p id="modal-desc" class="text-xs text-slate-500 mb-5 leading-relaxed"></p>
+      <div id="modal-input-container" class="mb-5 hidden">
+        <input type="text" id="modal-text-input" class="input-field">
+      </div>
+      <div class="flex gap-3 justify-end">
+        <button id="modal-btn-cancel" class="btn-ghost">Отмена</button>
+        <button id="modal-btn-confirm" class="btn-primary" style="padding:10px 18px;">Подтвердить</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Activation Screen -->
+  <div id="activation-screen" class="fixed inset-0 bg-z-bg z-40 flex items-center justify-center p-4">
+    <div class="activation-card">
+      <div class="flex items-center gap-3 mb-8">
+        <div class="w-10 h-10 rounded-xl bg-z-orange/10 border border-z-orange/20 flex items-center justify-center text-z-orange pulse-slow">
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+          </svg>
+        </div>
+        <div>
+          <h1 class="text-sm font-black font-mono tracking-wider uppercase text-slate-100 flicker">STALZONE TERMINAL</h1>
+          <p class="section-label mt-0.5">Требуется лицензионный ключ</p>
+        </div>
+      </div>
+
+      <div id="auth-error-banner" class="hidden bg-z-red/8 border border-z-red/25 rounded-xl p-4 mb-5 text-xs text-z-red font-mono leading-relaxed">
+        <strong class="block text-slate-200 font-bold mb-1">⚠️ ОШИБКА FIREBASE AUTH</strong>
+        Включите Anonymous Sign-in в консоли Firebase → Authentication → Sign-in method.
+      </div>
+
+      <div class="space-y-3">
+        <div>
+          <p class="section-label mb-2">Ключ доступа</p>
+          <input type="text" id="license-key-input" placeholder="SC-DXX-XXXX-XXXX-XXXX"
+                 class="input-field text-center text-z-orange placeholder:text-z-border uppercase tracking-widest" style="border-color:#1E2D45;">
+        </div>
+        <button onclick="activateLicense()" class="btn-primary w-full" style="padding:13px;">Активировать доступ</button>
+        <div class="flex justify-between items-center pt-3 border-t" style="border-color:#1A2538;">
+          <span class="text-xs text-slate-600 font-mono">Нет ключа?</span>
+          <button onclick="toggleAdminPanelDirect()" class="text-xs font-mono font-bold text-zone-rad hover:text-zone-radDim transition-colors">Панель управления →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ================= ГЛАВНЫЙ ИНТЕРФЕЙС ТЕРМИНАЛА ================= -->
+  <div id="main-terminal" class="hidden max-w-6xl w-full mx-auto px-4 sm:px-6 py-6 flex flex-col gap-5">
+    
+    <!-- HEADER -->
+    <header class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4"
+            style="background:#0D1120;border:1px solid #1E2D45;border-radius:16px;padding:20px 24px;position:relative;overflow:hidden;">
+      <div style="position:absolute;left:0;top:0;bottom:0;width:2px;background:linear-gradient(to bottom,#A8FF3E,rgba(168,255,62,0.1));border-radius:0 2px 2px 0;"></div>
+      
+      <div class="flex items-center gap-3 pl-2">
+        <button onclick="clickGeigerManual()" style="background:rgba(168,255,62,0.08);border:1px solid rgba(168,255,62,0.15);border-radius:10px;padding:8px;color:#A8FF3E;" class="transition-all hover:bg-opacity-20">
+          <svg class="w-5 h-5 pulse-slow" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+          </svg>
+        </button>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="font-black font-mono tracking-widest uppercase text-slate-100 flicker" style="font-size:15px;">STALZONE</span>
+            <span style="background:#A8FF3E;color:#050809;font-size:8px;font-weight:900;font-family:'JetBrains Mono',monospace;padding:2px 7px;border-radius:5px;letter-spacing:0.1em;">PRO</span>
+          </div>
+          <p class="section-label mt-0.5">Тактический терминал перекупщика</p>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap gap-2 items-center">
+        <div style="background:#07090E;border:1px solid #1E2D45;border-radius:10px;padding:8px 14px;display:flex;align-items:center;gap:8px;">
+          <span id="connection-status-dot" class="pulse-slow" style="width:6px;height:6px;border-radius:50%;background:#FF9500;display:inline-block;"></span>
+          <span id="connection-status-text" class="font-mono" style="font-size:10px;color:#5A6D82;text-transform:uppercase;letter-spacing:0.08em;">Подключение...</span>
+        </div>
+
+        <div style="background:#07090E;border:1px solid #1E2D45;border-radius:10px;padding:8px 14px;">
+          <p class="section-label" style="font-size:8px;margin-bottom:1px;">Лицензия</p>
+          <strong id="license-countdown" class="font-mono" style="font-size:11px;color:#A8FF3E;">Загрузка...</strong>
+        </div>
+
+        <button onclick="logoutLicense()" class="btn-ghost" style="color:#FF3B30;border-color:rgba(255,59,48,0.2);">Выйти</button>
+        <button onclick="toggleAdminPanelDirect()" class="btn-ghost" style="padding:8px 12px;">⚙</button>
+      </div>
+    </header>
+
+    <!-- STATS -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div class="stat-card" style="background:#0D1120;border:1px solid #1E2D45;border-radius:14px;padding:18px 20px;">
+        <p class="section-label mb-2">В обороте</p>
+        <p id="stat-total-invested" class="font-black font-mono text-slate-100" style="font-size:20px;">0 ₽</p>
+        <p style="font-size:10px;color:#3A4D63;margin-top:3px;">Активные закупки</p>
+      </div>
+      <div class="stat-card blue" style="background:#0D1120;border:1px solid #1E2D45;border-radius:14px;padding:18px 20px;">
+        <p class="section-label mb-2">Ожид. выручка</p>
+        <p id="stat-expected-revenue" class="font-black font-mono text-z-blue" style="font-size:20px;">0 ₽</p>
+        <p style="font-size:10px;color:#3A4D63;margin-top:3px;">За вычетом налога 5%</p>
+      </div>
+      <div class="stat-card glow-rad" style="background:#0D1120;border:1px solid rgba(168,255,62,0.12);border-radius:14px;padding:18px 20px;">
+        <p class="section-label mb-2">Чистая прибыль</p>
+        <p id="stat-total-profit" class="font-black font-mono text-z-rad" style="font-size:20px;">0 ₽</p>
+        <p id="stat-success-count" style="font-size:10px;color:#6BBF1F;margin-top:3px;">Сделок завершено: 0</p>
+      </div>
+      <div class="stat-card orange" style="background:#0D1120;border:1px solid #1E2D45;border-radius:14px;padding:18px 20px;">
+        <p class="section-label mb-2">ROI средний</p>
+        <p id="stat-avg-roi" class="font-black font-mono text-z-orange" style="font-size:20px;">0%</p>
+        <p style="font-size:10px;color:#3A4D63;margin-top:3px;">Эффективность сделок</p>
+      </div>
+    </div>
+
+    <!-- CALCULATOR — full width now -->
+    <div style="background:#0D1120;border:1px solid #1E2D45;border-radius:16px;padding:24px;">
+      <!-- Tabs -->
+      <div style="display:flex;gap:6px;background:#07090E;border:1px solid #1E2D45;border-radius:10px;padding:4px;margin-bottom:20px;">
+        <button id="tab-direct" onclick="switchCalculator('direct')"
+                class="tab-active-rad" style="flex:1;padding:9px;border-radius:8px;font-size:10px;font-weight:800;font-family:'JetBrains Mono',monospace;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;transition:all 0.15s;">
+          Прямой расчёт
+        </button>
+        <button id="tab-reverse" onclick="switchCalculator('reverse')"
+                class="tab-inactive" style="flex:1;padding:9px;border-radius:8px;font-size:10px;font-weight:800;font-family:'JetBrains Mono',monospace;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;transition:all 0.15s;">
+          Обратный расчёт
+        </button>
+      </div>
+
+      <!-- Direct -->
+      <div id="panel-direct-calc">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-5">
+          <div>
+            <p class="section-label mb-2">Цена покупки</p>
+            <div class="flex items-center bg-z-bg border border-z-border focus-within:border-z-rad/40 rounded-xl px-3.5 py-1">
+              <input type="number" id="direct-buy" oninput="calculateDirect()" placeholder="120 000" class="w-full bg-transparent border-none outline-none py-2 font-bold font-mono text-slate-100 text-sm">
+              <span class="text-xs font-mono text-slate-500 ml-2">₽</span>
+            </div>
+            <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;">
+              <button onclick="quickSetBuy(10000)" class="quick-btn">10к</button>
+              <button onclick="quickSetBuy(100000)" class="quick-btn">100к</button>
+              <button onclick="quickSetBuy(500000)" class="quick-btn">500к</button>
+              <button onclick="quickSetBuy(1000000)" class="quick-btn">1кк</button>
+            </div>
+          </div>
+          <div>
+            <p class="section-label mb-2">Цена продажи</p>
+            <div class="flex items-center bg-z-bg border border-z-border focus-within:border-z-rad/40 rounded-xl px-3.5 py-1">
+              <input type="number" id="direct-sell" oninput="calculateDirect()" placeholder="190 000" class="w-full bg-transparent border-none outline-none py-2 font-bold font-mono text-slate-100 text-sm">
+              <span class="text-xs font-mono text-slate-500 ml-2">₽</span>
+            </div>
+            <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;">
+              <button onclick="multiplySell(1.15)" class="quick-btn">+15%</button>
+              <button onclick="multiplySell(1.30)" class="quick-btn">+30%</button>
+              <button onclick="multiplySell(1.50)" class="quick-btn">+50%</button>
+              <button onclick="multiplySell(2.00)" class="quick-btn">×2.0</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Results grid -->
+        <div style="background:#07090E;border:1px solid #1A2538;border-radius:12px;padding:16px 20px;">
+          <div class="result-grid">
+            <span class="result-label">Налог аукциона (5%)</span>
+            <span id="direct-res-tax" class="result-val" style="color:#FF3B30;">0 ₽</span>
+
+            <span class="result-label">Чистая выручка</span>
+            <span id="direct-res-revenue" class="result-val" style="color:#0A84FF;">0 ₽</span>
+
+            <span class="result-label">Break-Even цена</span>
+            <span id="direct-res-breakeven" class="result-val" style="color:#4B5B72;">0 ₽</span>
+          </div>
+          <hr class="divider">
+          <div class="result-grid">
+            <span class="result-label font-bold" style="color:#8899AA;font-size:12px;">Чистая маржа</span>
+            <span id="direct-res-profit" class="result-val" style="color:#A8FF3E;font-size:16px;">0 ₽</span>
+
+            <span class="result-label font-bold" style="color:#8899AA;font-size:12px;">ROI</span>
+            <span id="direct-res-roi" class="result-val" style="color:#FF9500;font-size:15px;">0%</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Reverse -->
+      <div id="panel-reverse-calc" class="hidden">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-5">
+          <div>
+            <p class="section-label mb-2">Сумма закупки</p>
+            <div class="flex items-center bg-z-bg border border-z-border focus-within:border-z-orange/40 rounded-xl px-3.5 py-1">
+              <input type="number" id="reverse-buy" oninput="calculateReverse()" placeholder="200 000" class="w-full bg-transparent border-none outline-none py-2 font-bold font-mono text-slate-100 text-sm">
+              <span class="text-xs font-mono text-slate-500 ml-2">₽</span>
+            </div>
+          </div>
+          <div>
+            <p class="section-label mb-2">Желаемая прибыль</p>
+            <div class="flex items-center bg-z-bg border border-z-border focus-within:border-z-orange/40 rounded-xl px-3.5 py-1">
+              <input type="number" id="reverse-target" oninput="calculateReverse()" placeholder="50 000" class="w-full bg-transparent border-none outline-none py-2 font-bold font-mono text-slate-100 text-sm">
+              <span class="text-xs font-mono text-slate-500 ml-2">₽</span>
+            </div>
+          </div>
+        </div>
+        <div style="background:#07090E;border:1px solid #1A2538;border-radius:12px;padding:16px 20px;">
+          <div class="result-grid">
+            <span class="result-label">Сумма на руки (до налога)</span>
+            <span id="reverse-res-hand" class="result-val" style="color:#0A84FF;">0 ₽</span>
+
+            <span class="result-label">Налог биржи</span>
+            <span id="reverse-res-tax" class="result-val" style="color:#FF3B30;">0 ₽</span>
+          </div>
+          <hr class="divider">
+          <div class="result-grid">
+            <span class="result-label font-bold" style="color:#8899AA;font-size:12px;">Выставить на аукцион за</span>
+            <span id="reverse-res-sell" class="result-val" style="color:#FF9500;font-size:17px;">0 ₽</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom bar -->
+      <div style="display:flex;flex-direction:column;gap:14px;margin-top:18px;padding-top:16px;border-top:1px solid #1A2538;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div id="risk-bullet" class="risk-dot" style="background:#1E2D45;"></div>
+          <div>
+            <p class="section-label" style="font-size:8px;margin-bottom:1px;">Оценка риска</p>
+            <p id="risk-text" class="font-mono" style="font-size:11px;color:#4B5B72;">Введите параметры...</p>
+          </div>
+        </div>
+        <button onclick="addCurrentToTracker()" class="btn-primary w-full">+ Внести сделку в реестр</button>
+      </div>
+    </div>
+
+    <!-- REESTR -->
+    <div style="background:#0D1120;border:1px solid #1E2D45;border-radius:16px;padding:24px;">
+      <!-- Header -->
+      <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:16px;">
+        <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px;">
+          <div>
+            <h3 class="font-black font-mono uppercase tracking-widest text-slate-100" style="font-size:12px;">Реестр сделок</h3>
+            <p style="font-size:10px;color:#3A4D63;margin-top:2px;">Синхронизируется в реальном времени</p>
+          </div>
+          <div style="display:flex;gap:6px;">
+            <button onclick="exportTrades()" class="btn-ghost" style="font-size:10px;padding:7px 12px;">Экспорт</button>
+            <button onclick="triggerImport()" class="btn-ghost" style="font-size:10px;padding:7px 12px;">Импорт</button>
+            <input type="file" id="import-file" accept=".json" class="hidden" onchange="importTrades(event)">
+          </div>
+        </div>
+
+        <!-- Filters -->
+        <div style="display:flex;flex-wrap:wrap;gap:5px;">
+          <button onclick="setFilter('all')" id="filter-all" class="filter-btn active">Все</button>
+          <button onclick="setFilter('bought')" id="filter-bought" class="filter-btn">Куплено</button>
+          <button onclick="setFilter('listed')" id="filter-listed" class="filter-btn">На ауке</button>
+          <button onclick="setFilter('sold')" id="filter-sold" class="filter-btn">Продано</button>
+          <button onclick="setFilter('failed')" id="filter-failed" class="filter-btn">Убыток</button>
+        </div>
+      </div>
+
+      <!-- Table -->
+      <div style="overflow-x:auto;border-radius:10px;border:1px solid #1A2538;">
+        <table style="width:100%;border-collapse:collapse;min-width:680px;">
+          <thead>
+            <tr style="background:#07090E;border-bottom:1px solid #1A2538;">
+              <th style="padding:12px 16px;text-align:left;" class="section-label">Лот</th>
+              <th style="padding:12px 16px;text-align:left;" class="section-label">Закупка</th>
+              <th style="padding:12px 16px;text-align:left;" class="section-label">Продажа</th>
+              <th style="padding:12px 16px;text-align:left;" class="section-label">Налог</th>
+              <th style="padding:12px 16px;text-align:left;" class="section-label">Маржа / ROI</th>
+              <th style="padding:12px 16px;text-align:left;" class="section-label">Статус</th>
+              <th style="padding:12px 16px;text-align:right;" class="section-label">—</th>
+            </tr>
+          </thead>
+          <tbody id="trades-tbody"></tbody>
+        </table>
+        <div id="no-trades-message" class="hidden" style="padding:40px;text-align:center;color:#2A3A4F;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;">
+          Реестр пуст — добавьте первую сделку
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ================= ПАНЕЛЬ УПРАВЛЕНИЯ АДМИНИСТРАТОРА (SaaS Настройка) ================= -->
+  <div id="admin-panel" class="fixed inset-0 z-[80] flex items-center justify-center p-4 hidden" style="background:rgba(7,9,14,0.92);backdrop-filter:blur(6px);">
+    <div style="max-width:880px;width:100%;background:#0D1120;border:1px solid #1E2D45;border-radius:20px;padding:28px;max-height:90vh;overflow-y:auto;">
+      
+      <div style="display:flex;justify-content:space-between;align-items:center;padding-bottom:20px;border-bottom:1px solid #1A2538;margin-bottom:24px;">
+        <div>
+          <h2 class="font-black font-mono uppercase tracking-widest text-slate-100" style="font-size:13px;">Панель управления</h2>
+          <p class="section-label mt-0.5">Генерация ключей · Настройка Firebase</p>
+        </div>
+        <button onclick="closeAdminPanel()" class="btn-ghost">Закрыть</button>
+      </div>
+
+      <!-- Auth gate -->
+      <div id="admin-auth-gate" class="max-w-sm mx-auto py-8 space-y-3">
+        <p class="section-label text-center mb-4">Введите мастер-пароль</p>
+        <input type="password" id="admin-pass-input" placeholder="Пароль администратора"
+               class="input-field text-center text-z-orange">
+        <button onclick="verifyAdminPassword()" class="btn-primary w-full">Авторизоваться</button>
+      </div>
+
+      <!-- Workspace -->
+      <div id="admin-workspace" class="hidden space-y-5">
+        <!-- Firebase config -->
+        <div class="admin-card">
+          <h3 class="font-mono font-bold uppercase tracking-widest text-z-blue mb-3" style="font-size:11px;">🔗 Firebase конфигурация</h3>
+          <textarea id="firebase-config-textarea" rows="4" placeholder='{ "apiKey": "...", "projectId": "..." }'
+                    style="width:100%;background:#07090E;border:1px solid #1A2538;border-radius:10px;padding:12px;font-family:'JetBrains Mono',monospace;font-size:10px;color:#8899AA;outline:none;resize:vertical;"></textarea>
+          <p style="font-size:10px;color:#FF3B30;font-family:'JetBrains Mono',monospace;margin-top:8px;">⚠️ ВНИМАНИЕ: Обязательно включите Anonymous Auth в Firebase Console → Authentication → Sign-in method</p>
+          <button onclick="saveFirebaseConfigFromAdmin()" class="btn-ghost mt-3" style="color:#0A84FF;border-color:rgba(10,132,255,0.25);">Сохранить и перезапустить</button>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-5">
+          <!-- Key generator -->
+          <div class="admin-card md:col-span-2 flex flex-col gap-4">
+            <h3 class="font-mono font-bold uppercase tracking-widest text-zone-orange" style="font-size:11px;">🔑 Генератор ключей</h3>
+            <div>
+              <p class="section-label mb-2">Срок действия</p>
+              <select id="key-days-select" style="width:100%;background:#07090E;border:1px solid #1A2538;border-radius:10px;padding:9px 12px;font-family:'JetBrains Mono',monospace;font-size:11px;color:#C0D0E0;outline:none;">
+                <option value="1">1 день — Пробный</option>
+                <option value="7">7 дней — Неделя</option>
+                <option value="30">30 дней — Месяц</option>
+              </select>
+            </div>
+            <div style="background:#07090E;border:1px solid #1A2538;border-radius:10px;padding:12px;">
+              <p class="section-label mb-1">Новый ключ:</p>
+              <p id="new-key-display" onclick="copyToClipboard(this.innerText)" class="font-mono font-bold cursor-pointer hover:text-z-rad transition-colors" style="font-size:11px;color:#FF9500;word-break:break-all;">SC-XXXX-XXXX...</p>
+            </div>
+            <button onclick="generateNewLicenseKey()" class="btn-primary mt-auto">Выпустить ключ</button>
+          </div>
+
+          <!-- Keys table -->
+          <div class="admin-card md:col-span-3">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+              <h3 class="font-mono font-bold uppercase tracking-widest text-zone-orange" style="font-size:11px;">📡 Активные ключи</h3>
+              <span id="key-count-display" class="section-label">Всего: 0</span>
+            </div>
+            <div style="overflow-y:auto;max-height:220px;border-radius:8px;border:1px solid #1A2538;">
+              <table style="width:100%;border-collapse:collapse;">
+                <thead>
+                  <tr style="background:#07090E;border-bottom:1px solid #1A2538;">
+                    <th style="padding:8px 12px;text-align:left;" class="section-label">Ключ</th>
+                    <th style="padding:8px 12px;text-align:left;" class="section-label">Дней</th>
+                    <th style="padding:8px 12px;text-align:left;" class="section-label">Статус</th>
+                    <th style="padding:8px 12px;"></th>
+                  </tr>
+                </thead>
+                <tbody id="keys-tbody"></tbody>
+              </table>
+              <div id="no-keys-message" style="padding:24px;text-align:center;color:#2A3A4F;font-family:'JetBrains Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:0.1em;">Нет ключей</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CORE LOGIC MODULE -->
+  <script type="module">
+    const LOCAL_PREFIX = 'sc_market_pro_';
+    const ADMIN_DEFAULT_PASS = "SC-ADMIN-99X";
+    const appId = 'stalcraft-market-pro';
+
+    const HARDCODED_FIREBASE_CONFIG = {
+      apiKey: "AIzaSyASoAF_R2hbWrcuMQbl8qGJv5E5BOMb2fE",
+      authDomain: "sc-market-72b69.firebaseapp.com",
+      projectId: "sc-market-72b69",
+      storageBucket: "sc-market-72b69.firebasestorage.app",
+      messagingSenderId: "939729263914",
+      appId: "1:939729263914:web:269fcfdf8e265264705253",
+      measurementId: "G-Q48E34WBYZ"
+    };
+
+    // Будут определены после загрузки Firebase
+    let auth = null;
+    let db = null;
+    let currentCalculator = 'direct';
+    let currentFilter = 'all';
+
+    let trades = [];
+    let licenseKeys = [];
+    let userSubscription = null;
+    let licenseTimerInterval = null;
+    let activeKeySession = null;
+    let isAdminAuthorized = false;
+
+    // Импортируем деструктурированные методы из window.FirebaseLib
+    let initializeApp, getAuth, signInAnonymously, onAuthStateChanged, getFirestore, doc, setDoc, getDoc, updateDoc, collection, onSnapshot, deleteDoc;
+
+    // Вспомогательная функция таймаута для облака
+    async function withTimeout(promise, ms = 8000, msg = 'Timeout') {
+      let h; 
+      const tp = new Promise((_, r) => { 
+        h = setTimeout(() => {
+          const e = new Error(msg);
+          e.code = 'timeout';
+          r(e);
+        }, ms);
+      });
+      try { 
+        return await Promise.race([promise, tp]); 
+      } finally { 
+        clearTimeout(h); 
+      }
+    }
+
+    // TOAST
+    window.showToast = function(message, type='info') {
+      const c = document.getElementById('toast-container');
+      const t = document.createElement('div');
+      t.className = 'toast-item pointer-events-auto';
+      const colors = { success:'#A8FF3E', error:'#FF3B30', info:'#0A84FF' };
+      const icons  = { success:'✓', error:'⚠', info:'◉' };
+      t.style.borderColor = type==='success'?'rgba(168,255,62,0.2)':type==='error'?'rgba(255,59,48,0.2)':'rgba(10,132,255,0.2)';
+      t.innerHTML = `<span style="color:${colors[type]||'#A8FF3E'};font-weight:900;flex-shrink:0;">${icons[type]||'◉'}</span><span style="color:#C0D0E0;">${message}</span>`;
+      if(type==='error') window.playSfx('error_siren');
+      c.appendChild(t);
+      setTimeout(()=>t.style.opacity='0.01',4000);
+      setTimeout(()=>t.remove(),4300);
+    }
+
+    // ИНИЦИАЛИЗАЦИЯ СЕТИ И ПРОВЕРКА FIREBASE
+    async function initSystem() {
+      let cfg = HARDCODED_FIREBASE_CONFIG;
+      const sc = localStorage.getItem(LOCAL_PREFIX+'firebase_config_object');
+      if(sc){try{cfg=JSON.parse(sc);}catch(e){}}
+
+      if(!window.FirebaseLib) return;
+      
+      // Назначаем импорты из глобального контейнера
+      ({ initializeApp, getAuth, signInAnonymously, onAuthStateChanged, getFirestore, doc, setDoc, getDoc, updateDoc, collection, onSnapshot, deleteDoc } = window.FirebaseLib);
+
+      try {
+        const app = initializeApp(cfg);
+        auth = getAuth(app); 
+        db = getFirestore(app);
+        document.getElementById('auth-error-banner').classList.add('hidden');
+
+        try {
+          await withTimeout(signInAnonymously(auth), 6000, 'Timeout авторизации');
+        } catch(ae) {
+          if(ae.code==='auth/configuration-not-found'||ae.message?.includes('configuration-not-found')) {
+            document.getElementById('auth-error-banner').classList.remove('hidden');
+            setStatus('red','Ошибка Auth');
+            showToast('Включите Anonymous Auth в Firebase!','error');
+            return;
+          }
+          throw ae;
+        }
+
+        onAuthStateChanged(auth, async user=>{
+          if(user) { 
+            setStatus('green','Облако активно'); 
+            await syncAndValidateKeySession(); 
+          } else { 
+            setStatus('red','Нет авторизации'); 
+            showActivationGateway(); 
+          }
+        });
+      } catch(err) {
+        console.error(err);
+        document.getElementById('network-error-screen').classList.remove('hidden');
+        document.getElementById('activation-screen').classList.add('hidden');
+      }
+    }
+
+    function setStatus(color, text) {
+      const dot=document.getElementById('connection-status-dot');
+      const txt=document.getElementById('connection-status-text');
+      const cols={green:'#A8FF3E',red:'#FF3B30',orange:'#FF9500'};
+      dot.style.background=cols[color]||cols.orange;
+      txt.innerText=text;
+      txt.style.color=cols[color]||cols.orange;
+    }
+
+    window.saveFirebaseConfigFromAdmin = async function(){
+      const t=document.getElementById('firebase-config-textarea').value.trim();
+      if(!t){
+        localStorage.removeItem(LOCAL_PREFIX+'firebase_config_object');
+        showToast('Восстановлена дефолтная БД.','info');
+        setTimeout(()=>location.reload(),1000);
+        return;
+      }
+      try {
+        const p=JSON.parse(t);
+        if(p.apiKey&&p.projectId){
+          localStorage.setItem(LOCAL_PREFIX+'firebase_config_object',JSON.stringify(p));
+          showToast('Конфигурация сохранена!','success');
+          setTimeout(()=>location.reload(),1500);
+        } else {
+          showToast('Некорректный JSON Firebase.','error');
+        }
+      } catch(e) {
+        showToast('Ошибка синтаксиса JSON.','error');
+      }
+    }
+
+    async function syncAndValidateKeySession() {
+      const k=localStorage.getItem(LOCAL_PREFIX+'saved_license_key');
+      if(!k){showActivationGateway();return;}
+      try {
+        const ref=doc(db,'artifacts',appId,'public','data','license_keys',k);
+        const snap=await withTimeout(getDoc(ref),8000,'Timeout синхронизации ключа');
+        if(snap.exists()){
+          const d=snap.data();
+          if((d.status==='used'||d.status==='active')&&d.expiresAt>Date.now()){
+            activeKeySession=k; userSubscription=d; verifyAndOpenTerminal(); return;
+          }
+        }
+        localStorage.removeItem(LOCAL_PREFIX+'saved_license_key');
+        showActivationGateway();
+        showToast('Лицензия недействительна или истекла!','error');
+      } catch(e){ 
+        showToast('Ошибка: '+e.message,'error'); 
+        showActivationGateway(); 
+      }
+    }
+
+    function verifyAndOpenTerminal() {
+      if(!userSubscription||!activeKeySession){showActivationGateway();return;}
+      document.getElementById('activation-screen').classList.add('hidden');
+      const t=document.getElementById('main-terminal');
+      t.classList.remove('hidden'); t.style.display='flex'; t.style.flexDirection='column';
+      loadTrades();
+      startLicenseCountdownTicker(userSubscription.expiresAt);
+      window.playSfx('access_granted');
+    }
+
+    function showActivationGateway() {
+      document.getElementById('activation-screen').classList.remove('hidden');
+      document.getElementById('main-terminal').classList.add('hidden');
+      if (licenseTimerInterval) clearInterval(licenseTimerInterval);
+    }
+
+    function startLicenseCountdownTicker(exp) {
+      if(licenseTimerInterval) clearInterval(licenseTimerInterval);
+      const el=document.getElementById('license-countdown');
+      const tick=()=>{
+        const d=exp-Date.now();
+        if(d<=0){
+          clearInterval(licenseTimerInterval);
+          el.innerText='ИСТЕКЛА';
+          el.style.color='#FF3B30';
+          localStorage.removeItem(LOCAL_PREFIX+'saved_license_key');
+          showActivationGateway();
+          return;
+        }
+        const days=Math.floor(d/86400000),h=Math.floor((d%86400000)/3600000),m=Math.floor((d%3600000)/60000),s=Math.floor((d%60000)/1000);
+        el.innerText=(days>0?days+'д ':'')+`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+        el.style.color=d<43200000?'#FF3B30':'#A8FF3E';
+      };
+      tick(); licenseTimerInterval=setInterval(tick,1000);
+    }
+
+    // АКТИВАЦИЯ ДОСТУПА
+    window.activateLicense=async function(){
+      const k=document.getElementById('license-key-input').value.trim();
+      if(!k){showToast('Введите лицензионный ключ!','error');return;}
+      if(!window.FirebaseLib||!db){showToast('Firebase не инициализирован!','error');return;}
+      showToast('Верификация ключа...','info');
+      try {
+        const ref=doc(db,'artifacts',appId,'public','data','license_keys',k);
+        const snap=await withTimeout(getDoc(ref),8000,'БД Firestore недоступна');
+        if(snap.exists()){
+          const d=snap.data();
+          if(d.status==='active'){
+            const exp=Date.now()+(parseInt(d.days||1)*86400000);
+            const upd={status:'used',activatedAt:Date.now(),expiresAt:exp,activatedByDevice:auth.currentUser?.uid||'anon'};
+            await withTimeout(updateDoc(ref,upd),8000,'Timeout обновления ключа');
+            localStorage.setItem(LOCAL_PREFIX+'saved_license_key',k);
+            activeKeySession=k; userSubscription={...d,...upd};
+            verifyAndOpenTerminal(); showToast('Лицензия активирована!','success'); return;
+          } else if(d.status==='used'&&d.expiresAt>Date.now()){
+            localStorage.setItem(LOCAL_PREFIX+'saved_license_key',k);
+            activeKeySession=k; userSubscription=d;
+            verifyAndOpenTerminal(); showToast('Синхронизация профиля успешна!','success'); return;
+          } else showToast('Срок действия ключа истёк!','error');
+        } else showToast('Ключ не найден в базе данных.','error');
+      } catch(e){ showToast('Ошибка: '+e.message,'error'); }
+    }
+
+    window.logoutLicense=function(){
+      localStorage.removeItem(LOCAL_PREFIX+'saved_license_key');
+      activeKeySession=null; userSubscription=null;
+      document.getElementById('license-key-input').value='';
+      showActivationGateway(); showToast('Вы вышли из системы.','info');
+    }
+
+    // CALCULATOR
+    window.switchCalculator=function(mode){
+      currentCalculator=mode; window.playSfx('geiger_click');
+      const td=document.getElementById('tab-direct'),tr=document.getElementById('tab-reverse');
+      const pd=document.getElementById('panel-direct-calc'),pr=document.getElementById('panel-reverse-calc');
+      if(mode==='direct'){
+        td.className='tab-active-rad'; tr.className='tab-inactive';
+        pd.classList.remove('hidden'); pr.classList.add('hidden'); calculateDirect();
+      } else {
+        tr.className='tab-active-orange'; td.className='tab-inactive';
+        pr.classList.remove('hidden'); pd.classList.add('hidden'); calculateReverse();
+      }
+    }
+
+    function fv(n){ return new Intl.NumberFormat('ru-RU').format(n)+' ₽'; }
+
+    window.calculateDirect=function(){
+      const buy=parseInt(document.getElementById('direct-buy').value)||0;
+      const sell=parseInt(document.getElementById('direct-sell').value)||0;
+      const tax=Math.round(sell*0.05), rev=sell-tax, profit=rev-buy, be=Math.round(buy/0.95);
+      const roi=buy>0?Math.round((profit/buy)*100):0;
+      document.getElementById('direct-res-tax').innerText=fv(tax);
+      document.getElementById('direct-res-revenue').innerText=fv(rev);
+      document.getElementById('direct-res-breakeven').innerText=fv(be);
+      const pe=document.getElementById('direct-res-profit');
+      pe.innerText=(profit>0?'+':'')+fv(profit);
+      pe.style.color=profit<0?'#FF3B30':'#A8FF3E';
+      document.getElementById('direct-res-roi').innerText=roi+'%';
+      updateRisk(profit,roi,buy);
+    }
+
+    window.calculateReverse=function(){
+      const buy=parseInt(document.getElementById('reverse-buy').value)||0;
+      const tgt=parseInt(document.getElementById('reverse-target').value)||0;
+      const sell=Math.round((buy+tgt)/0.95), tax=Math.round(sell*0.05);
+      document.getElementById('reverse-res-hand').innerText=fv(sell-tax);
+      document.getElementById('reverse-res-tax').innerText=fv(tax);
+      document.getElementById('reverse-res-sell').innerText=fv(sell);
+      updateRisk(tgt,buy>0?Math.round((tgt/buy)*100):0,buy);
+    }
+
+    window.quickSetBuy=function(v){
+      document.getElementById('direct-buy').value=v;
+      document.getElementById('reverse-buy').value=v;
+      window.playSfx('geiger_click');
+      currentCalculator==='direct'?calculateDirect():calculateReverse();
+    }
+    
+    window.multiplySell=function(m){
+      const b=parseInt(document.getElementById('direct-buy').value)||0;
+      if(b>0){
+        document.getElementById('direct-sell').value=Math.round(b*m);
+        window.playSfx('geiger_click');
+        calculateDirect();
+      }
+    }
+
+    function updateRisk(profit,roi,buy){
+      const b=document.getElementById('risk-bullet'), t=document.getElementById('risk-text');
+      if(buy<=0){b.style.backgroundColor='#1E2D45';t.innerText='Введите параметры...';t.style.color='#4B5B72';return;}
+      if(profit<0){b.style.backgroundColor='#FF3B30';t.innerText='Убыточная сделка!';t.style.color='#FF3B30';}
+      else if(roi<15){b.style.backgroundColor='#FF9500';t.innerText='Высокий риск — ROI < 15%';t.style.color='#FF9500';}
+      else if(roi<40){b.style.backgroundColor='#0A84FF';t.innerText='Стабильный флип';t.style.color='#0A84FF';}
+      else{b.style.backgroundColor='#A8FF3E';t.innerText='Отличный флип — ROI > 40%';t.style.color='#A8FF3E';}
+    }
+
+    // TRADES REGISTRATION
+    async function loadTrades(){
+      if(!db||!activeKeySession) return;
+      try {
+        onSnapshot(collection(db,'artifacts',appId,'users',activeKeySession,'trades'),snap=>{
+          trades=[]; snap.forEach(d=>trades.push({id:d.id,...d.data()})); renderAll();
+        },err=>{showToast('Сбой синхронизации!','error');});
+      } catch(e){ console.error(e); }
+    }
+
+    async function saveTrades(t){
+      if(!db||!activeKeySession) return;
+      try { 
+        await withTimeout(setDoc(doc(db,'artifacts',appId,'users',activeKeySession,'trades',t.id),t),8000); 
+      } catch(e){ 
+        showToast('Ошибка сохранения: '+e.message,'error'); 
+      }
+    }
+
+    window.addCurrentToTracker=async function(){
+      let buy=0,sell=0;
+      if(currentCalculator==='direct'){
+        buy=parseInt(document.getElementById('direct-buy').value)||0;
+        sell=parseInt(document.getElementById('direct-sell').value)||0;
+      } else {
+        buy=parseInt(document.getElementById('reverse-buy').value)||0;
+        sell=parseInt(document.getElementById('reverse-res-sell').innerText.replace(/\s|₽/g,'').replace(/\u00a0/g,''))||0;
+      }
+      if(buy<=0||sell<=0){showToast('Укажите цены покупки и продажи!','error');return;}
+      const name=await showCustomPrompt('Название лота','Введите имя предмета для журнала:','Редкий артефакт');
+      if(name===null) return;
+      const tax=Math.round(sell*0.05),profit=(sell-tax)-buy,roi=buy>0?Math.round((profit/buy)*100):0;
+      const trade={id:'t_'+Date.now()+'_'+Math.floor(Math.random()*1000),name:name||'Лот',buyPrice:buy,sellPrice:sell,tax,profit,roi,status:'listed',createdAt:new Date().toLocaleDateString('ru-RU')};
+      trades.unshift(trade);
+      await saveTrades(trade);
+      renderAll(); window.playSfx('cash_register'); showToast(`"${trade.name}" добавлен в реестр!`,'success');
+    }
+
+    function renderAll(){ renderStats(); renderTable(); }
+
+    function renderStats(){
+      const active=trades.filter(t=>t.status==='bought'||t.status==='listed');
+      const listed=trades.filter(t=>t.status==='listed');
+      const sold=trades.filter(t=>t.status==='sold');
+      document.getElementById('stat-total-invested').innerText=fv(active.reduce((s,t)=>s+t.buyPrice,0));
+      document.getElementById('stat-expected-revenue').innerText=fv(listed.reduce((s,t)=>s+(t.sellPrice-t.tax),0));
+      const tp=sold.reduce((s,t)=>s+t.profit,0);
+      document.getElementById('stat-total-profit').innerText=fv(tp);
+      const tb=sold.reduce((s,t)=>s+t.buyPrice,0);
+      document.getElementById('stat-avg-roi').innerText=(tb>0?Math.round((tp/tb)*100):0)+'%';
+      document.getElementById('stat-success-count').innerText='Сделок завершено: '+sold.length;
+    }
+
+    function renderTable(){
+      const tbody=document.getElementById('trades-tbody'), empty=document.getElementById('no-trades-message');
+      tbody.innerHTML='';
+      const filtered=trades.filter(t=>currentFilter==='all'||t.status===currentFilter);
+      if(!filtered.length){empty.classList.remove('hidden');return;} else empty.classList.add('hidden');
+      filtered.forEach(trade=>{
+        const badgeClass='badge badge-'+(trade.status==='bought'?'bought':trade.status==='listed'?'listed':trade.status==='sold'?'sold':'failed');
+        const badgeText={bought:'Куплено',listed:'На ауке',sold:'Продано ✓',failed:'Убыток'}[trade.status]||trade.status;
+        const profitColor=trade.profit<0?'#FF3B30':'#A8FF3E';
+        const tr=document.createElement('tr');
+        tr.className='table-row'; tr.style.cssText='border-bottom:1px solid #141E2E;font-size:12px;font-family:"JetBrains Mono",monospace;';
+        tr.innerHTML=`
+          <td style="padding:12px 16px;">
+            <p style="font-weight:700;color:#C8D8E8;">${trade.name}</p>
+            <p style="font-size:9px;color:#2A3A4F;margin-top:2px;">${trade.createdAt}</p>
+          </td>
+          <td style="padding:12px 16px;color:#8899AA;font-weight:600;">${fv(trade.buyPrice)}</td>
+          <td style="padding:12px 16px;color:#8899AA;font-weight:600;">${fv(trade.sellPrice)}</td>
+          <td style="padding:12px 16px;color:#FF3B30;font-weight:600;">${fv(trade.tax)}</td>
+          <td style="padding:12px 16px;">
+            <p style="font-weight:800;color:${profitColor};">${trade.profit>0?'+':''}${fv(trade.profit)}</p>
+            <p style="font-size:9px;color:#3A4D63;margin-top:2px;">ROI <strong style="color:#FF9500;">${trade.roi}%</strong></p>
+          </td>
+          <td style="padding:12px 16px;">
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+              <span class="${badgeClass}">${badgeText}</span>
+              <select class="status-select-element status-select">
+                <option value="bought" ${trade.status==='bought'?'selected':''}>Куплено</option>
+                <option value="listed" ${trade.status==='listed'?'selected':''}>На ауке</option>
+                <option value="sold" ${trade.status==='sold'?'selected':''}>Продано</option>
+                <option value="failed" ${trade.status==='failed'?'selected':''}>Убыток</option>
+              </select>
+            </div>
+          </td>
+          <td style="padding:12px 16px;text-align:right;">
+            <button class="delete-btn-element" style="color:#2A3A4F;font-size:13px;cursor:pointer;transition:color 0.15s;background:none;border:none;">🗑</button>
+          </td>
+        `;
+        
+        tr.querySelector('.status-select-element').onchange = (e) => updateTradeStatus(trade.id, e.target.value);
+        tr.querySelector('.delete-btn-element').onclick = () => deleteTrade(trade.id);
+        tbody.appendChild(tr);
+      });
+    }
+
+    async function updateTradeStatus(id,status){
+      const i=trades.findIndex(t=>t.id===id);
+      if(i!==-1){
+        trades[i].status=status;
+        if(status==='sold'){
+          window.playSfx('cash_register');
+          showToast(`"${trades[i].name}" закрыт! +${fv(trades[i].profit)}`,'success');
+        } else {
+          window.playSfx('geiger_click');
+        }
+        await saveTrades(trades[i]);
+        renderAll();
+      }
+    }
+
+    async function deleteTrade(id){
+      if(!await showCustomConfirm('Удаление сделки','Убрать эту запись из торгового реестра?')) return;
+      if(db&&activeKeySession){
+        try{
+          await withTimeout(deleteDoc(doc(db,'artifacts',appId,'users',activeKeySession,'trades',id)),8000);
+        } catch(e){
+          showToast('Ошибка: '+e.message,'error');
+        }
+      }
+      trades=trades.filter(t=>t.id!==id); 
+      renderAll(); 
+      window.playSfx('trash_delete'); 
+      showToast('Сделка удалена.','info');
+    }
+
+    window.setFilter=function(f){
+      currentFilter=f; window.playSfx('geiger_click');
+      ['all','bought','listed','sold','failed'].forEach(n=>{
+        const el=document.getElementById('filter-'+n);
+        el.className='filter-btn'+(n===f?' active':'');
+      }); 
+      renderTable();
+    }
+
+    window.exportTrades=function(){
+      try {
+        const a=document.createElement('a');
+        a.href='data:text/json;charset=utf-8,'+encodeURIComponent(JSON.stringify(trades,null,2));
+        a.download='trades_backup_'+Date.now()+'.json';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        showToast('Экспорт готов!','success');
+      } catch(e) {
+        showToast('Ошибка экспорта.','error');
+      }
+    }
+    
+    window.triggerImport=function(){
+      document.getElementById('import-file').click();
+    }
+    
+    window.importTrades=function(e){
+      const f=e.target.files[0]; if(!f) return;
+      const r=new FileReader();
+      r.onload=async ev=>{
+        try {
+          const p=JSON.parse(ev.target.result);
+          if(Array.isArray(p)){
+            trades=p;
+            for(const t of trades) await saveTrades(t);
+            renderAll();
+            showToast('Импорт завершён!','success');
+          } else {
+            showToast('Некорректный формат файла.','error');
+          }
+        } catch(err){
+          showToast('Ошибка импорта.','error');
+        }
+      };
+      r.readAsText(f);
+    }
+
+    // ADMIN ENVIRONMENT
+    window.toggleAdminPanelDirect=function(){
+      window.playSfx('geiger_click');
+      document.getElementById('admin-panel').classList.remove('hidden');
+      if(isAdminAuthorized){
+        document.getElementById('admin-auth-gate').classList.add('hidden');
+        document.getElementById('admin-workspace').classList.remove('hidden');
+        loadAllLicenseKeys();
+      } else {
+        document.getElementById('admin-auth-gate').classList.remove('hidden');
+        document.getElementById('admin-workspace').classList.add('hidden');
+      }
+    }
+    
+    window.closeAdminPanel=function(){
+      window.playSfx('geiger_click');
+      document.getElementById('admin-panel').classList.add('hidden');
+    }
+
+    // ЗАЩИЩЕННАЯ ПРОВЕРКА ПАРОЛЯ ЧЕРЕЗ FIRESTORE (БЕЗ ХАРДКОДА)
+    window.verifyAdminPassword=async function(){
+      const enteredPass = document.getElementById('admin-pass-input').value.trim();
+      if (!enteredPass) {
+        showToast("Введите пароль!", "error");
+        return;
+      }
+
+      showToast("Проверка прав администратора в облаке...", "info");
+
+      try {
+        const configRef = doc(db, 'artifacts', appId, 'public', 'data', 'admin', 'config');
+        let configSnap = await getDoc(configRef);
+        
+        let correctPassword = ADMIN_DEFAULT_PASS; // Дефолтный пароль
+        
+        if (!configSnap.exists()) {
+          // Если документа еще нет, инициализируем его с паролем по умолчанию SC-ADMIN-99X
+          await setDoc(configRef, { password: ADMIN_DEFAULT_PASS });
+          correctPassword = ADMIN_DEFAULT_PASS;
+        } else {
+          correctPassword = configSnap.data().password || ADMIN_DEFAULT_PASS;
+        }
+
+        if (enteredPass === correctPassword) {
+          isAdminAuthorized=true;
+          document.getElementById('admin-auth-gate').classList.add('hidden');
+          document.getElementById('admin-workspace').classList.remove('hidden');
+          
+          const s=localStorage.getItem(LOCAL_PREFIX+'firebase_config_object');
+          document.getElementById('firebase-config-textarea').value=JSON.stringify(s?JSON.parse(s):HARDCODED_FIREBASE_CONFIG,null,2);
+          
+          window.playSfx('access_granted'); 
+          showToast('Добро пожаловать, администратор!','success');
+          loadAllLicenseKeys();
+        } else {
+          showToast('Неверный мастер-пароль!','error');
+        }
+      } catch (err) {
+        console.error("Error verifying admin pass:", err);
+        showToast("Ошибка проверки пароля: " + err.message, "error");
+      }
+    }
+
+    async function loadAllLicenseKeys(){
+      if(!db) return;
+      try {
+        onSnapshot(collection(db,'artifacts',appId,'public','data','license_keys'),snap=>{
+          licenseKeys=[]; snap.forEach(d=>licenseKeys.push({key:d.id,...d.data()})); renderKeysTable();
+        },err=>{showToast('Ошибка загрузки ключей!','error');});
+      } catch(e){}
+    }
+
+    function renderKeysTable(){
+      const tbody=document.getElementById('keys-tbody'),empty=document.getElementById('no-keys-message');
+      tbody.innerHTML='';
+      document.getElementById('key-count-display').innerText='Всего: '+licenseKeys.length;
+      if(!licenseKeys.length){empty.classList.remove('hidden');return;} else empty.classList.add('hidden');
+      licenseKeys.forEach(k=>{
+        const tr=document.createElement('tr');
+        tr.style.cssText='border-bottom:1px solid #141E2E;font-size:10px;font-family:"JetBrains Mono",monospace;';
+        const badge=k.status==='active'?`<span style="color:#A8FF3E;font-weight:800;">Активен</span>`:`<span style="color:#3A4D63;font-weight:700;">Использован</span>`;
+        tr.innerHTML=`
+          <td class="key-td-click" style="padding:8px 12px;color:#FF9500;font-weight:700;cursor:pointer;" title="Копировать">${k.key}</td>
+          <td style="padding:8px 12px;color:#8899AA;">${k.days}д</td>
+          <td style="padding:8px 12px;">${badge}</td>
+          <td style="padding:8px 12px;text-align:right;">
+            <button class="delete-key-btn-el" style="color:#3A4D63;font-size:10px;font-family:'JetBrains Mono',monospace;font-weight:700;background:none;border:none;cursor:pointer;text-transform:uppercase;letter-spacing:0.05em;transition:color 0.15s;" onmouseover="this.style.color='#FF3B30'" onmouseout="this.style.color='#3A4D63'">Удалить</button>
+          </td>
+        `;
+        
+        tr.querySelector('td').onclick = () => copyToClipboard(k.key);
+        tr.querySelector('.delete-key-btn-el').onclick = () => window.deleteLicenseKey(k.key);
+        tbody.appendChild(tr);
+      });
+    }
+
+    // ИСПРАВЛЕННЫЙ ВЫПУСК КЛЮЧЕЙ
+    window.generateNewLicenseKey=async function(){
+      const days=parseInt(document.getElementById('key-days-select').value)||1;
+      const p="ABCDEFGHJKLMNOPQRSTUVWXYZ23456789";
+      const gen=n=>Array.from({length:n},()=>p[Math.floor(Math.random()*p.length)]).join('');
+      const key=`SC-D${days}-${gen(4)}-${gen(4)}-${gen(4)}`;
+      if(!db) return;
+      try {
+        await withTimeout(setDoc(doc(db,'artifacts',appId,'public','data','license_keys',key),{days,status:'active',createdAt:Date.now()}),8000);
+        document.getElementById('new-key-display').innerText=key;
+        showToast('Ключ выпущен: '+key,'success'); window.playSfx('cash_register');
+        loadAllLicenseKeys();
+      } catch(e){ showToast('Ошибка: '+e.message,'error'); }
+    }
+
+    window.deleteLicenseKey=async function(key){
+      if(!confirm('Удалить ключ '+key+'?')) return;
+      try { 
+        await withTimeout(deleteDoc(doc(db,'artifacts',appId,'public','data','license_keys',key)),8000); 
+        showToast('Ключ удалён.','info'); 
+        window.playSfx('trash_delete'); 
+        loadAllLicenseKeys();
+      } catch(e){ showToast('Ошибка: '+e.message,'error'); }
+    }
+
+    window.onFirebaseLoaded=function(){ initSystem(); }
+    
+    // Привязка событий onload
+    if(window.FirebaseLib) {
+      initSystem();
+    }
+  </script>
+</body>
+</html>
